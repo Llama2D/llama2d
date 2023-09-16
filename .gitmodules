@@ -1,3 +1,6 @@
 [submodule "transformers"]
 	path = transformers
 	url = https://github.com/llama2d/transformers.git
+[submodule "webarena"]
+	path = webarena
+	url = https://github.com/web-arena-x/webarena
