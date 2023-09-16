@@ -1,1 +1,4 @@
 google-cloud-vision
+torch
+sentencepiece
+

@@ -1,5 +1,3 @@
-# SCREEN_RESOLUTION
-from ..constants import *
 from google.cloud import vision
 from dataclasses import dataclass
 
@@ -21,11 +19,9 @@ class ImageAnnotatorResponse:
 class ImageAnnotator(object):
     def __init__(self, credentials="../secrets/llama2d-dee298d9a98d.json"):
         try:
-            client = vision.ImageAnnotatorClient.from_service_account_file(credentials)
+            self.client = vision.ImageAnnotatorClient.from_service_account_file(credentials)
         except Exception as e:
-            print("\n\n\n@@@HINT: did you get ./secrets/llama2d-dee298d9a98d.json from Jack? \n\n\n")
-            raise e
-
+            raise ValueError("OCR Object creation FAILED!\n\n@@@HINT: did you get ./secrets/llama2d-dee298d9a98d.json from the slack channel?")
 
         self.__features = [vision.Feature(type_=vision.Feature.Type.TEXT_DETECTION)]
 
@@ -35,8 +31,8 @@ class ImageAnnotator(object):
             content = image_file.read()
 
         image = vision.Image(content=content)
-        request = vision.AnnotateImageRequest(image=image, features=features)
-        response = client.annotate_image(request)
+        request = vision.AnnotateImageRequest(image=image, features=self.__features)
+        res = self.client.annotate_image(request)
 
         full_text = res.full_text_annotation.text
 
