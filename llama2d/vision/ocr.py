@@ -16,7 +16,7 @@ class ImageAnnotatorResponse:
     full_text: str # full text 
     orig_text_dims: Tuple[float, float] # the dimension of the *TEXT PORTION* of the image
 
-    annotations: List[ImageAnnotation] # a list of objects and their midpoints
+    words: List[ImageAnnotation] # a list of words and their midpoints
 
 class ImageAnnotator(object):
     def __init__(self, credentials="../secrets/llama2d-dee298d9a98d.json"):
@@ -66,7 +66,8 @@ class ImageAnnotator(object):
         response = ImageAnnotatorResponse(
             full_text=full_text,
             orig_text_dims=(max_width, max_height),
-            annotations=annotations_normed
+            words=annotations_normed
         )
 
         return response
+
