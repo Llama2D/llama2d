@@ -4,6 +4,8 @@ from typing import Any, Optional, Tuple
 import numpy as np
 import torch.nn as nn
 
+from ..constants import SCREEN_RESOLUTION
+
 class PositionEmbeddingRandom(nn.Module):
     """
     Positional encoding using random spatial frequencies.
@@ -17,6 +19,9 @@ class PositionEmbeddingRandom(nn.Module):
             "positional_encoding_gaussian_matrix",
             scale * torch.randn((2, num_pos_feats)),
         )
+
+        # 0 is for not a point, 1 is for a point
+        self.is_a_point_embed = nn.Embedding(2, num_pos_feats)
 
     def _pe_encoding(self, coords: torch.Tensor) -> torch.Tensor:
         """Positionally encode points that are normalized to [0,1]."""
@@ -48,3 +53,33 @@ class PositionEmbeddingRandom(nn.Module):
         coords[:, :, 0] = coords[:, :, 0] / image_size[1]
         coords[:, :, 1] = coords[:, :, 1] / image_size[0]
         return self._pe_encoding(coords.to(torch.float))  # B x N x C
+
+
+    def apply_rotary_2d_pos_emb(self,q,k,coords):
+        # shape of q and k: [bs, ???, seq_len, dim]
+        # aka: B x ??? x N x C
+        # shape of coords: [bs, ???, seq_len, 2]
+
+        # maybe ??? is 1:
+        assert q.shape[1] == 1,f"The ??? dimension of q is {q.shape[1]}, not 1"
+        assert k.shape[1] == 1,f"The ??? dimension of k is {k.shape[1]}, not 1"
+        assert len(coords.shape) == 4,f"The shape of coords should have dims (bs,???,seq_len,2)"
+        assert coords.shape[1] == 1,f"The ??? dimension of coords is {coords.shape[1]}, not 1"
+
+        bs,_,seq_len,dim = q.shape
+
+        # some coords will be [-1,-1] because they have no known position
+        # we should not add these coords to the positional embedding
+        is_a_point = coords[:,:,0] != -1
+
+        pos_embeds = self.forward_with_coords(coords.squeeze(1),image_size=SCREEN_RESOLUTION)
+        assert pos_embeds.shape == (bs,seq_len,dim)
+
+        is_a_point_embeds = self.is_a_point_embed(is_a_point.long())
+        assert is_a_point_embeds.shape == (bs,seq_len,dim)
+
+        # add the positional embedding to the query and key
+        q = q + pos_embeds.unsqueeze(1)
+        k = k + pos_embeds.unsqueeze(1)
+
+        return q,k,is_a_point_embeds
