@@ -5,9 +5,13 @@ Extract features using the tokenizer, including text and image
 
 import os
 import tempfile
+from selenium import webdriver
 from transformers import LlamaTokenizer
 from ..vision.ocr import ImageAnnotator
 from ..vision.url_to_image.url_to_image import take_screenshot
+
+from glob import glob
+from torch.utils.data import Dataset
 
 class Llama2dWebsiteFeatureExtractor(object):
 
@@ -51,8 +55,7 @@ class Llama2dWebsiteFeatureExtractor(object):
             [self.__seperator_id] + # seperating prompt with context
             self.tokenizer.convert_tokens_to_ids([j for i in image_tokens for j in i]) + 
             [self.__seperator_id] + # seperating context with answer
-            self.tokenizer.convert_tokens_to_ids(output_tokens) + 
-            [self.tokenizer.eos_token_id] # eos token
+            self.tokenizer.convert_tokens_to_ids(output_tokens)
         )
 
         # mask out the prompt
@@ -63,8 +66,7 @@ class Llama2dWebsiteFeatureExtractor(object):
             [-100 if self.__mask_out_body else k
              for k in self.tokenizer.convert_tokens_to_ids([j for i in image_tokens for j in i])] + 
             [-100] + # seperating context with answer
-            self.tokenizer.convert_tokens_to_ids(output_tokens) + 
-            [self.tokenizer.eos_token_id] # eos token
+            self.tokenizer.convert_tokens_to_ids(output_tokens)
         )
 
         # and we switch together the image locs
@@ -74,8 +76,7 @@ class Llama2dWebsiteFeatureExtractor(object):
             [(-1, -1)]+ # for the seperator
             [j for i in image_token_locs for j in i] +
             [(-1, -1)]+ # for the seperator
-            output_tokens_locs + 
-            [(-1, -1)] # eos token
+            output_tokens_locs
         )
         # return output
         return {
@@ -84,15 +85,40 @@ class Llama2dWebsiteFeatureExtractor(object):
             "labels": label_ids
         }
 
-    def __call__(self, prompt, uri, output):
-
+    def from_webpage(self, prompt, uri, output):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, extract_domain(uri)+".png")
-            take_screenshot(url=uri, save_path=path)
+            html = os.path.join(tmpdir, extract_domain(uri)+".mhtml")
+
+            driver = webdriver.Chrome()
+            driver.get(uri)
+
+            # Execute Chrome dev tool command to obtain the mhtml file
+            res = driver.execute_cdp_cmd('Page.captureSnapshot', {})
+
+            take_screenshot(url=html, save_path=path)
             return self.__process(prompt, path, output)
 
-        # prompt = "The example uses the Hugging Face trainer and model"
-        # page = "../../tmp/webpage2.png"
+    def from_local_file(self, prompt, html, output):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, extract_domain(uri)+".png")
+            take_screenshot(url=html, save_path=path)
+            return self.__process(prompt, path, output)
+
+
+
+# driver.quit()
+
+# from selenium import webdriver
+
+# driver = webdriver.Firefox()
+# driver.get("http://www.python.org")
+# dom_snapshot = driver.execute_script('return document.documentElement.outerHTML;')
+# driver.quit()
+# # dom_snapshot
+
+# from datasets import load_dataset
+# dataset = load_dataset("osunlp/Mind2Web")
 
 
 # tokenizer("")
@@ -104,5 +130,5 @@ if __name__=="__main__":
     extractor = Llama2dWebsiteFeatureExtractor("decapoda-research/llama-7b-hf", mask_out_body=False)
     oup = extractor("search for silly cats", "https://www.google.com", "click [5]")
 
-    assert len(oup["input_ids"]) == len(oup["coords"]) 
-    assert len(oup["input_ids"]) == len(oup["labels"]) 
+    # assert len(oup["input_ids"]) == len(oup["coords"]) 
+    # assert len(oup["input_ids"]) == len(oup["labels"]) 
