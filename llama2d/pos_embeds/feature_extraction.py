@@ -55,7 +55,7 @@ class Llama2dWebsiteFeatureExtractor(object):
             [self.__seperator_id] + # seperating prompt with context
             self.tokenizer.convert_tokens_to_ids([j for i in image_tokens for j in i]) + 
             [self.__seperator_id] + # seperating context with answer
-            self.tokenizer.convert_tokens_to_ids(output_tokens) 
+            self.tokenizer.convert_tokens_to_ids(output_tokens)
         )
 
         # mask out the prompt
@@ -66,7 +66,7 @@ class Llama2dWebsiteFeatureExtractor(object):
             [-100 if self.__mask_out_body else k
              for k in self.tokenizer.convert_tokens_to_ids([j for i in image_tokens for j in i])] + 
             [-100] + # seperating context with answer
-            self.tokenizer.convert_tokens_to_ids(output_tokens) 
+            self.tokenizer.convert_tokens_to_ids(output_tokens)
         )
 
         # and we switch together the image locs
@@ -76,7 +76,7 @@ class Llama2dWebsiteFeatureExtractor(object):
             [(-1, -1)]+ # for the seperator
             [j for i in image_token_locs for j in i] +
             [(-1, -1)]+ # for the seperator
-            output_tokens_locs 
+            output_tokens_locs
         )
         # return output
         return {
