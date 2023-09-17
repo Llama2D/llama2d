@@ -13,6 +13,8 @@ from ..vision.url_to_image.url_to_image import take_screenshot
 from glob import glob
 from torch.utils.data import Dataset
 
+from tqdm import tqdm
+
 class Llama2dWebsiteFeatureExtractor(object):
 
     def __init__(self, model_path, seperator_id=None, label_mask_id=-100, mask_out_body = True): # -100 is default
@@ -85,26 +87,68 @@ class Llama2dWebsiteFeatureExtractor(object):
             "labels": label_ids
         }
 
-    def from_webpage(self, prompt, uri, output):
+    def create_inference_data(self, prompt, uri):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, extract_domain(uri)+".png")
-            html = os.path.join(tmpdir, extract_domain(uri)+".mhtml")
+            # html = os.path.join(tmpdir, extract_domain(uri)+".mhtml")
 
-            driver = webdriver.Chrome()
-            driver.get(uri)
+            # driver = webdriver.Chrome()
+            # driver.get(uri)
 
-            # Execute Chrome dev tool command to obtain the mhtml file
-            res = driver.execute_cdp_cmd('Page.captureSnapshot', {})
+            # # Execute Chrome dev tool command to obtain the mhtml file
+            # res = driver.execute_cdp_cmd('Page.captureSnapshot', {})
 
-            take_screenshot(url=html, save_path=path)
-            return self.__process(prompt, path, output)
+            take_screenshot(url=uri, save_path=path)
+            return self.__process(prompt, path, "")
 
-    def from_local_file(self, prompt, html, output):
+    def from_training_data(self, html):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, extract_domain(uri)+".png")
-            take_screenshot(url=html, save_path=path)
-            return self.__process(prompt, path, output)
+            prompt, label = take_screenshot(url=html, save_path=path)
+            return self.__process(prompt, path, label)
 
+# class Llama2dDataset(Dataset):
+
+#     def __init__(self, input_mhtml_dir=None, input_urls=None, tasks=None):
+#         """Creates PyTorch Dataset from EITHER a folder of mhtml or input urls
+
+#         THIS OBJECT ASSUMES THAT YOU HAVE THE HF DATASET DOWNLADED
+
+#         Parameters
+#         ----------
+#         tasks : List[str]
+#             A list of prompts for the input task.
+#         input_mhtml_dir : List[str]
+#             A folder in which lives a bunch of .mhtmls.
+#         input_urls : List[str]
+#             A list of URLS, used for inference.
+#         """
+
+#         print("creating dataset...")
+
+#         if input_mhtml_dir:
+#             print("using local .mhtmls assumes that you are training and that the files are named correctly")
+
+
+#     def __getitem__(self, index):
+#         pass
+
+#     def __len__(self):
+#         pass 
+
+class Llama2dPretrainingDataset(Dataset):
+
+    def __init__(self, model="decapoda-research/llama-7b-hf", urls = []):
+        self.__extractor = Llama2dWebsiteFeatureExtractor(model, mask_out_body=False)
+        self.__urls = urls
+
+        self.extractions = [self.__extractor.create_inference_data("", i) for i in self.__urls]
+
+    def __getitem__(self, index):
+        return self.extractions[index]
+
+    def __len__(self):
+        return len(self.__urls)
 
 
 # driver.quit()
@@ -127,8 +171,17 @@ class Llama2dWebsiteFeatureExtractor(object):
 # tokenizer.eos_token_id
 
 if __name__=="__main__":
-    extractor = Llama2dWebsiteFeatureExtractor("decapoda-research/llama-7b-hf", mask_out_body=False)
-    oup = extractor("search for silly cats", "https://www.google.com", "click [5]")
+    dataset = Llama2dPretrainingDataset(model="decapoda-research/llama-7b-hf",
+                                        urls=["https://github.com/OSU-NLP-Group/Mind2Web",
+                                            "https://stackoverflow.com/questions/60352003/how-to-download-webpage-as-mhtml"])
+
+    sample = dataset[0]
+
+
+# extractor = Llama2dWebsiteFeatureExtractor("decapoda-research/llama-7b-hf", mask_out_body=True)
+# tmp = extractor.create_inference_data("", "https://arxiv.org/pdf/1706.03762.pdf")
+
+    # oup = extractor("search for silly cats", "https://www.google.com", "click [5]")
 
     # assert len(oup["input_ids"]) == len(oup["coords"]) 
     # assert len(oup["input_ids"]) == len(oup["labels"]) 
