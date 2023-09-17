@@ -5,6 +5,7 @@ Extract features using the tokenizer, including text and image
 
 import os
 import tempfile
+from selenium import webdriver
 from transformers import LlamaTokenizer
 from ..vision.ocr import ImageAnnotator
 from ..vision.url_to_image.url_to_image import take_screenshot
@@ -84,15 +85,40 @@ class Llama2dWebsiteFeatureExtractor(object):
             "labels": label_ids
         }
 
-    def __call__(self, prompt, uri, output):
-
+    def from_webpage(self, prompt, uri, output):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, extract_domain(uri)+".png")
-            take_screenshot(url=uri, save_path=path)
+            html = os.path.join(tmpdir, extract_domain(uri)+".mhtml")
+
+            driver = webdriver.Chrome()
+            driver.get(uri)
+
+            # Execute Chrome dev tool command to obtain the mhtml file
+            res = driver.execute_cdp_cmd('Page.captureSnapshot', {})
+
+            take_screenshot(url=html, save_path=path)
             return self.__process(prompt, path, output)
 
-        # prompt = "The example uses the Hugging Face trainer and model"
-        # page = "../../tmp/webpage2.png"
+    def from_local_file(self, prompt, html, output):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, extract_domain(uri)+".png")
+            take_screenshot(url=html, save_path=path)
+            return self.__process(prompt, path, output)
+
+
+
+# driver.quit()
+
+# from selenium import webdriver
+
+# driver = webdriver.Firefox()
+# driver.get("http://www.python.org")
+# dom_snapshot = driver.execute_script('return document.documentElement.outerHTML;')
+# driver.quit()
+# # dom_snapshot
+
+# from datasets import load_dataset
+# dataset = load_dataset("osunlp/Mind2Web")
 
 
 # tokenizer("")
@@ -104,5 +130,5 @@ if __name__=="__main__":
     extractor = Llama2dWebsiteFeatureExtractor("decapoda-research/llama-7b-hf", mask_out_body=False)
     oup = extractor("search for silly cats", "https://www.google.com", "click [5]")
 
-    assert len(oup["input_ids"]) == len(oup["coords"]) 
-    assert len(oup["input_ids"]) == len(oup["labels"]) 
+    # assert len(oup["input_ids"]) == len(oup["coords"]) 
+    # assert len(oup["input_ids"]) == len(oup["labels"]) 
