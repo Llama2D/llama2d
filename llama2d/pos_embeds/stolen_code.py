@@ -4,14 +4,14 @@ from typing import Any, Optional, Tuple
 import numpy as np
 import torch.nn as nn
 
-from ..constants import SCREEN_RESOLUTION
+# from ..constants import SCREEN_RESOLUTION
 
 class PositionEmbeddingRandom(nn.Module):
     """
     Positional encoding using random spatial frequencies.
     """
 
-    def __init__(self, num_pos_feats: int = 64, scale: Optional[float] = None) -> None:
+    def __init__(self, num_pos_feats: int = 64, scale: Optional[float] = None,pin_lbd:bool=False) -> None:
         super().__init__()
         if scale is None or scale <= 0.0:
             scale = 1.0
@@ -23,11 +23,16 @@ class PositionEmbeddingRandom(nn.Module):
         # 0 is for not a point, 1 is for a point
         self.is_a_point_embed = nn.Embedding(2, num_pos_feats)
 
+        self.num_pos_feats = num_pos_feats
 
         # TODO: for a sanity check, freeze this param to zero.
         # this will test if a normal Llama can learn to beat WebArena.
         # a gate for the positional encoding
         self.lbd = nn.Parameter(torch.tensor(0.0))
+
+        if pin_lbd:
+            self.lbd.requires_grad = False
+            print("Pinned lambda!")
 
     def _pe_encoding(self, coords: torch.Tensor) -> torch.Tensor:
         """Positionally encode points that are normalized to [0,1]."""
@@ -73,11 +78,15 @@ class PositionEmbeddingRandom(nn.Module):
 
         bs,num_heads,seq_len,dim = q.shape
 
+        print("Dim:",dim)
+
+        assert dim == self.num_pos_feats,f"Dim of q is {dim}, not {self.num_pos_feats}"
+
         # some coords will be [-1,-1] because they have no known position
         # we should not add these coords to the positional embedding
         is_a_point = coords[:,:,0] != -1
 
-        pos_embeds = self.forward_with_coords(coords,image_size=SCREEN_RESOLUTION)
+        pos_embeds = self.forward_with_coords(coords)
         assert pos_embeds.shape == (bs,seq_len,dim)
 
         is_a_point_embeds = self.is_a_point_embed(is_a_point.long())

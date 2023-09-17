@@ -1,7 +1,6 @@
 import asyncio
 import re
 from typing import List, Optional
-import openai
 
 # noinspection PyProtectedMember
 from bs4 import BeautifulSoup, Tag, Comment
@@ -11,23 +10,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.expected_conditions import AnyDriver
 
-# from reworkd_platform.services.embeddings import AbstractEmbeddingService
-# from reworkd_platform.services.openai import OpenAIService, UserMessage
-# from reworkd_platform.services.vector_utils import cosine_similarity, find_topk
-# from reworkd_platform.settings import settings
-
-# from reworkd_platform.services.tokenizer.token_service_2 import TokenService
-# from reworkd_platform.schemas.agent import LLM_MODEL_MAX_TOKENS
-
-openai.api_base = "https://oai.hconeai.com/v1"
-
 # read from env
 import os
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-assert openai.api_key is not None, "OPENAI_API_KEY environment variable not set"
 
 
 def clean_html(html: str) -> str:
+    raise NotImplementedError("You shouldn't be using any bs4 els")
     soup = BeautifulSoup(html, "html.parser")
 
     for hidden in soup.select('[style*="display: none"], [hidden], [disabled]'):
@@ -43,7 +31,9 @@ def clean_html(html: str) -> str:
         element.extract()
 
     return str(soup.prettify())
+
 def get_xpath(element: Tag) -> str:
+    raise NotImplementedError("You shouldn't be using any bs4 els")
     path_parts: List[str] = []
     while element:
         if element.name is None:
@@ -81,8 +71,8 @@ def get_xpath(element: Tag) -> str:
         element = element.parent
     return "//" + "/".join(path_parts)
 
-
 def bs4_to_sel(element: Tag, driver: AnyDriver) -> WebElement:
+    raise NotImplementedError("You shouldn't be using any bs4 els")
     element_path = get_xpath(element)
     by = By.XPATH
 
@@ -107,7 +97,6 @@ def bs4_to_sel(element: Tag, driver: AnyDriver) -> WebElement:
         except selenium.common.exceptions.NoSuchElementException:
             pass
         print(f"Could not find element with path {element_path}")
-
 
 async def write_text(sel_element: WebElement, text: str, driver: AnyDriver) -> None:
     driver.execute_script(
@@ -137,26 +126,3 @@ def check_interactable_sel(sel_element: WebElement, driver) -> bool:
         return True
     except:
         return False
-
-
-async def click_element(element: WebElement, driver: AnyDriver) -> None:
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
-    await asyncio.sleep(1)
-    
-    driver.set_page_load_timeout(5)
-    try:
-        ActionChains(driver).move_to_element(element).click().perform()
-    except selenium.common.exceptions.TimeoutException:
-        # print('Page took too long to load. Click event was interrupted.')
-        pass
-    finally:
-        # set page load timeout back to default unlimited
-        driver.set_page_load_timeout(-1)
-
-
-
-def give_context(tag: Tag, level=1) -> str:
-    tag.attrs["target_element"] = "true"
-    for _ in range(level):
-        tag = tag.parent
-    return tag.prettify()
