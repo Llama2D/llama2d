@@ -21,7 +21,7 @@ def tagify_webpage(driver,gt_action):
 
     assert len(pos_candidates) == 1,"Only one positive candidate is supported"
 
-    attrs = gt_action["pos_candidates"][0]['attributes']
+    attrs = json.loads(gt_action["pos_candidates"][0]['attributes'])
 
     cls = attrs.get("class",None)
     id = attrs.get("id",None)
@@ -97,5 +97,8 @@ if __name__ == "__main__":
         }]
     }
 
-    driver.get("https://www.google.com")
+    dummy_action = {"pos_candidates":[{'attributes': '{"backend_node_id": "136", "bounding_box_rect": "110,607.390625,264,78", "class": "MuiSelect-root MuiSelect-select jss31 MuiSelect-filled jss32 MuiInputBase-input MuiFilledInput-input jss22 MuiInputBase-inputAdornedStart MuiFilledInput-inputAdornedStart", "id": "reservations-city-search-type", "name": "type", "data_pw_testid_buckeye_candidate": "1"}', 'backend_node_id': '136', 'is_original_target': True, 'is_top_level_target': True, 'tag': 'select'}]}
+
+
+    driver.get("file:///Users/dooli/Projects/misc/llama2d/961c3a5e-f8ce-4c71-a917-aa546dcea7fb_before.mhtml")
     print(tagify_webpage(driver,dummy_action))
