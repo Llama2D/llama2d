@@ -16,10 +16,16 @@ import json
 # URL of the webpage you want to scrape
 url = "http://example.com"
 
+print(example['domain'])
+print(example['subdomain'])
+
+# We might be able to assume website we can append .com to it
+print(example['website'])
+print(len(dataset['train']))
+
 print('Attemping to find all tags that contains that contain the attrs:')
 print(type(attrs))
 print(attrs)
-print(str(attrs))
 
 attributes = json.loads(attrs)
 
