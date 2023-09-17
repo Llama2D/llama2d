@@ -10,6 +10,9 @@ from transformers import LlamaTokenizer
 from ..vision.ocr import ImageAnnotator
 from ..vision.url_to_image.url_to_image import take_screenshot
 
+from glob import glob
+from torch.utils.data import Dataset
+
 class Llama2dWebsiteFeatureExtractor(object):
 
     def __init__(self, model_path, seperator_id=None, label_mask_id=-100, mask_out_body = True): # -100 is default
@@ -52,8 +55,7 @@ class Llama2dWebsiteFeatureExtractor(object):
             [self.__seperator_id] + # seperating prompt with context
             self.tokenizer.convert_tokens_to_ids([j for i in image_tokens for j in i]) + 
             [self.__seperator_id] + # seperating context with answer
-            self.tokenizer.convert_tokens_to_ids(output_tokens) + 
-            [self.tokenizer.eos_token_id] # eos token
+            self.tokenizer.convert_tokens_to_ids(output_tokens) 
         )
 
         # mask out the prompt
@@ -64,8 +66,7 @@ class Llama2dWebsiteFeatureExtractor(object):
             [-100 if self.__mask_out_body else k
              for k in self.tokenizer.convert_tokens_to_ids([j for i in image_tokens for j in i])] + 
             [-100] + # seperating context with answer
-            self.tokenizer.convert_tokens_to_ids(output_tokens) + 
-            [self.tokenizer.eos_token_id] # eos token
+            self.tokenizer.convert_tokens_to_ids(output_tokens) 
         )
 
         # and we switch together the image locs
@@ -75,8 +76,7 @@ class Llama2dWebsiteFeatureExtractor(object):
             [(-1, -1)]+ # for the seperator
             [j for i in image_token_locs for j in i] +
             [(-1, -1)]+ # for the seperator
-            output_tokens_locs + 
-            [(-1, -1)] # eos token
+            output_tokens_locs 
         )
         # return output
         return {
