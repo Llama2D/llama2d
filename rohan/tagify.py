@@ -15,20 +15,54 @@ import json
 
 driver = uc.Chrome(headless=False,use_subprocess=True,version_main=116)
 
-def tagify_webpage(url):
-    driver.get(url)
+def tagify_webpage(driver,gt_action):
+
+    pos_candidates = gt_action["pos_candidates"]
+
+    assert len(pos_candidates) == 1,"Only one positive candidate is supported"
+
+    attrs = gt_action["pos_candidates"][0]['attributes']
+
+    cls = attrs.get("class",None)
+    id = attrs.get("id",None)
+
+    print(f"Looking for element with class {cls} and id {id}")
+
+
+    # driver.get(url)
     html = clean_html(driver.page_source)
     soup = BeautifulSoup(html, "html.parser")
 
     num = 0
-    for tag in soup.find_all(True):
-        if check_interactable_bs4(tag):
+    gt_tag_id = -1
+
+    # get gt tag by id
+    gt_tag = soup.find(id=id)
+
+    for tag in [*soup.find_all(True)]:
+
+        # get class
+        tag_cls = tag.get("class",None)
+        if tag_cls is not None:
+            tag_cls = " ".join(tag_cls)
+        tag_id = tag.get("id",None)
+
+        is_gt_tag = tag_cls == cls and tag_id == id
+
+        if check_interactable_bs4(tag) or is_gt_tag:
+            if is_gt_tag:
+                print("Found gt element")
             sel_tag = bs4_to_sel(tag, driver)
             tag_whitelist = ["input", "textarea", "select"]
             if sel_tag.text.strip() == "" and sel_tag.tag_name not in tag_whitelist:
                 continue
             if check_interactable_sel(sel_tag, driver):
+
                 num += 1
+
+                if is_gt_tag:
+                    gt_tag_id = num
+
                 new_text = f"{tag.text} [{num}]"
 
                 script = f"""
@@ -47,3 +81,21 @@ def tagify_webpage(url):
 """
 
                 driver.execute_script(script, sel_tag)
+    return gt_tag_id
+
+
+
+if __name__ == "__main__":
+
+
+    dummy_action = {
+        "pos_candidates":[{
+            "attributes":{
+                "class":"gLFyf",
+                "id":"APjFqb"
+            }
+        }]
+    }
+
+    driver.get("https://www.google.com")
+    print(tagify_webpage(driver,dummy_action))
