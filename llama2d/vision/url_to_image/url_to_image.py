@@ -1,6 +1,9 @@
 from playwright.sync_api import sync_playwright
 from urllib.parse import urlparse
 
+from ...constants import SCREEN_RESOLUTION
+width,height = SCREEN_RESOLUTION
+
 def take_screenshot(url, save_path='image_of_website.png'):
     with sync_playwright() as p:
         # Using the Chromium browser but you can also use 'firefox' or 'webkit'
@@ -16,7 +19,9 @@ def take_screenshot(url, save_path='image_of_website.png'):
         
         # Set the viewport height to be the height of the content
         content_height = page.evaluate("document.documentElement.scrollHeight")
-        page.set_viewport_size({"width": 1920, "height": content_height})  # 1920 width is arbitrary, change if needed
+        thresholded_height = min(content_height,height)
+
+        page.set_viewport_size({"width": width, "height": thresholded_height})
         
         page.screenshot(path=save_path)
         

@@ -4,11 +4,12 @@ from typing import List, Optional
 
 # noinspection PyProtectedMember
 from bs4 import BeautifulSoup, Tag, Comment
-import selenium
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support.expected_conditions import AnyDriver
+# import selenium
+# from selenium.webdriver.common.action_chains import ActionChains
+# from selenium.webdriver.common.by import By
+# from selenium.webdriver.remote.webelement import WebElement
+# from selenium.webdriver.support.expected_conditions import AnyDriver
+
 
 # read from env
 import os
