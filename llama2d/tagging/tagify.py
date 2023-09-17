@@ -1,13 +1,7 @@
-
-from bs4 import BeautifulSoup
-
-# create webdriver
-from playwright.sync_api import sync_playwright
-# import undetected_chromedriver as uc
 import json
 import os
 
-# driver = uc.Chrome(headless=False,use_subprocess=True,version_main=116)
+from playwright.sync_api import sync_playwright
 
 def tagify_webpage(page,gt_action):
 
@@ -22,14 +16,12 @@ def tagify_webpage(page,gt_action):
 
     print(f"Looking for element with class {cls} and id {id}")
 
-    # get directory of this file
     curr_dir = os.path.dirname(os.path.realpath(__file__))
     with open(f"{curr_dir}/mlsUtils.js","r") as f:
-        page.execute_script(f.read())
+        page.evaluate(f.read())
 
-    gt_tag_id = page.execute_script(f"return tagifyWebpage({json.dumps(cls)},{json.dumps(id)})")
+    gt_tag_id = page.evaluate(f"return tagifyWebpage({json.dumps(cls)},{json.dumps(id)})")
     return gt_tag_id
-
 
 
 if __name__ == "__main__":

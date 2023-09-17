@@ -1,6 +1,5 @@
 # llama2d
 
-
 # transformers
 
 At the beginning of the hackathon, I said 2D position embeddings could be added in `main.py` without modifying Llama's source code.
