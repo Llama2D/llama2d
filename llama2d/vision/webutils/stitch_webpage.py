@@ -8,6 +8,10 @@ from PIL import Image
 import subprocess
 
 options = Options()
+user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+
+options = webdriver.ChromeOptions()
+options.add_argument(f'user-agent={user_agent}')
 options.add_argument('--disable-blink-features=AutomationControlled')
 options.add_argument("--disable-extensions")
 options.add_experimental_option('useAutomationExtension', False)
@@ -25,21 +29,20 @@ def stitch(images):
   image.save('stacked_image.png')
 
 def scrape_scroll(url):
-  # driver = webdriver.Chrome(options=options)  # Make sure the path to
-  driver = uc.Chrome(headless=True, use_subprocess=False)
+  driver = webdriver.Chrome(options=options)  # Make sure the path to
+  # driver = uc.Chrome(headless=True, use_subprocess=False, option)
   
   driver.get(url)  # Replace with the URL of the webpage you want to screenshot# Set the initial scroll height
   screenshots = []
   scroll_height = 0
   try:
     while True:
-    
       total_height = driver.execute_script("return document.body.scrollHeight")
 
       driver.set_window_size(1920, total_height)  # Adjust the window size to your liking
       screenshot = driver.find_element(By.TAG_NAME, 'body').screenshot_as_png
       
-      print(type(screenshot))
+      # print(type(screenshot))
       image = np.array(Image.open(io.BytesIO(screenshot))) 
       print(image.shape)
       # with open('screenshot.png', 'wb') as f:
