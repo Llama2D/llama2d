@@ -91,16 +91,20 @@ class Llama2dWebsiteFeatureExtractor(object):
         input_ids = torch.tensor(input_ids)
         label_ids = torch.tensor(label_ids)
 
+        attention_mask = torch.ones_like(input_ids)
+
         # pad or truncate
         if len(input_ids) > MAX_SEQ_LEN:
             input_ids = input_ids[:MAX_SEQ_LEN]
             label_ids = label_ids[:MAX_SEQ_LEN]
             input_coords = input_coords[:MAX_SEQ_LEN]
+            attention_mask = attention_mask[:MAX_SEQ_LEN]
         elif len(input_ids) < MAX_SEQ_LEN:
             # right-pad label_ids with -100, input_coords with (-1,-1), and input_ids with 0
             input_ids = torch.cat([input_ids, torch.zeros(MAX_SEQ_LEN-len(input_ids), dtype=torch.long)])
             label_ids = torch.cat([label_ids, torch.ones(MAX_SEQ_LEN-len(label_ids), dtype=torch.long)*self.__label_mask_id])
             input_coords = torch.cat([input_coords, torch.ones(MAX_SEQ_LEN-len(input_coords), 2)*-1])
+            attention_mask = torch.cat([attention_mask, torch.zeros(MAX_SEQ_LEN-len(attention_mask), dtype=torch.long)])
 
         # return output
         return {
