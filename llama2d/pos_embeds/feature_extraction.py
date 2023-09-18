@@ -110,7 +110,8 @@ class Llama2dWebsiteFeatureExtractor(object):
         return {
             "input_ids": input_ids,
             "coords": input_coords,
-            "labels": label_ids
+            "labels": label_ids,
+            "attention_mask": attention_mask
         }
         
 
