@@ -164,6 +164,31 @@ class Llama2dWebsiteFeatureExtractor(object):
 #     def __len__(self):
 #         pass 
 
+def exceptional(call, args):
+    """Wrapper function to return None for a function if it errors.
+
+    Parameters
+    ----------
+    call : callable
+        The function to call
+    args : List[Any]
+        The arguments to call it with
+
+    Returns
+    -------
+    Any
+        The output of the funciton.
+    """
+    
+    try:
+        return call(*args)
+    except Exception as e:
+        print("your call to", call, "errored! Returning None")
+        print(e)
+
+        return None
+
+
 from playwright.sync_api import sync_playwright
 class Llama2dPretrainingDataset(Dataset):
 
@@ -181,7 +206,13 @@ class Llama2dPretrainingDataset(Dataset):
             page.set_extra_http_headers({
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36'
             })
-            self.extractions = [self.__extractor.create_inference_data(page,"", i) for i in self.__urls]
+            # exceptional() is a function calling helper that returns None if the method errors.
+            # we call all the functions
+            self.extractions = [exceptional(self.__extractor.create_inference_data, args=(page,"", i))
+                                for i in self.__urls]
+            # or otherwise return None
+            self.extractions = [i for i in self.extractions if i]
+
 
     def __getitem__(self, index):
         ret = self.extractions[index]
@@ -190,7 +221,7 @@ class Llama2dPretrainingDataset(Dataset):
         return ret
 
     def __len__(self):
-        return len(self.__urls)
+        return len(self.extractions)
 
 
 # driver.quit()
@@ -211,6 +242,7 @@ class Llama2dPretrainingDataset(Dataset):
 # tokenizer.tokenize(tokenizer.bos_token)
 # tokenizer.bos_token_id
 # tokenizer.eos_token_id
+
 
 if __name__=="__main__":
     dataset = Llama2dPretrainingDataset(model="decapoda-research/llama-7b-hf",
