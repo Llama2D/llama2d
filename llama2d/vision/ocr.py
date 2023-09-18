@@ -3,6 +3,8 @@ from dataclasses import dataclass
 
 from typing import Tuple, List
 
+from ..constants import SECRETS_FILE
+
 @dataclass
 class ImageAnnotation:
     text: str # the word
@@ -16,9 +18,13 @@ class ImageAnnotatorResponse:
 
     words: List[ImageAnnotation] # a list of words and their midpoints
 
+
+    
 class ImageAnnotator(object):
-    def __init__(self, credentials="../secrets/llama2d-dee298d9a98d.json"):
+    def __init__(self, credentials=SECRETS_FILE):
         try:
+            import os
+            print(os.getcwd())
             self.client = vision.ImageAnnotatorClient.from_service_account_file(credentials)
         except Exception as e:
             raise ValueError("OCR Object creation FAILED!\n\n@@@HINT: did you get ./secrets/llama2d-dee298d9a98d.json from the slack channel?")

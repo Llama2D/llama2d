@@ -1,11 +1,24 @@
 from urllib.parse import urlparse
 
+from playwright.sync_api import sync_playwright
 from ...constants import SCREEN_RESOLUTION
 width,height = SCREEN_RESOLUTION
 
-def launch_browser
+# def launch_browser
 
 def take_screenshot(page,url, save_path='image_of_website.png'):
+    if page is None:
+        with sync_playwright() as p:
+            # Using the Chromium browser but you can also use 'firefox' or 'webkit'
+            browser = p.chromium.launch()
+            page = browser.new_page()
+
+            page.set_extra_http_headers({
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36'
+            })
+            
+            return take_screenshot(page,url,save_path)
+    
     if url is not None:
         print('going to ' + url)
         page.goto(url)

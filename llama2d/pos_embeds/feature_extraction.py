@@ -5,16 +5,18 @@ Extract features using the tokenizer, including text and image
 
 import os
 import tempfile
-from selenium import webdriver
+# from selenium import webdriver
 from transformers import LlamaTokenizer
 from ..vision.ocr import ImageAnnotator
-from ..vision.url_to_image.url_to_image import take_screenshot
+from ..vision.url_to_image.url_to_image import take_screenshot,extract_domain
+print("extract_domain",extract_domain)
 
 from glob import glob
 from torch.utils.data import Dataset
 
 from tqdm import tqdm
 
+import torch
 class Llama2dWebsiteFeatureExtractor(object):
 
     def __init__(self, model_path, seperator_id=None, label_mask_id=-100, mask_out_body = True): # -100 is default
@@ -80,14 +82,18 @@ class Llama2dWebsiteFeatureExtractor(object):
             [(-1, -1)]+ # for the seperator
             output_tokens_locs
         )
+        input_coords = torch.tensor(input_coords)
+        input_ids = torch.tensor(input_ids)
+        label_ids = torch.tensor(label_ids)
         # return output
         return {
             "input_ids": input_ids,
             "coords": input_coords,
             "labels": label_ids
         }
+        
 
-    def create_inference_data(self, prompt, uri):
+    def create_inference_data(self, page, prompt, uri):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, extract_domain(uri)+".png")
             # html = os.path.join(tmpdir, extract_domain(uri)+".mhtml")
@@ -98,13 +104,13 @@ class Llama2dWebsiteFeatureExtractor(object):
             # # Execute Chrome dev tool command to obtain the mhtml file
             # res = driver.execute_cdp_cmd('Page.captureSnapshot', {})
 
-            take_screenshot(url=uri, save_path=path)
+            take_screenshot(page=page,url=uri, save_path=path)
             return self.__process(prompt, path, "")
 
-    def from_training_data(self, html):
+    def from_training_data(self, page, html):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, extract_domain(uri)+".png")
-            prompt, label = take_screenshot(url=html, save_path=path)
+            prompt, label = take_screenshot(page=page,url=html, save_path=path)
             return self.__process(prompt, path, label)
 
 # class Llama2dDataset(Dataset):
@@ -136,16 +142,30 @@ class Llama2dWebsiteFeatureExtractor(object):
 #     def __len__(self):
 #         pass 
 
+from playwright.sync_api import sync_playwright
 class Llama2dPretrainingDataset(Dataset):
 
-    def __init__(self, model="decapoda-research/llama-7b-hf", urls = []):
+    def __init__(self, model="decapoda-research/llama-7b-hf", urls = [], include_coords=True):
         self.__extractor = Llama2dWebsiteFeatureExtractor(model, mask_out_body=False)
         self.__urls = urls
+        
+        self.__include_coords = include_coords
 
-        self.extractions = [self.__extractor.create_inference_data("", i) for i in self.__urls]
+        with sync_playwright() as p:
+            # Using the Chromium browser but you can also use 'firefox' or 'webkit'
+            browser = p.chromium.launch()
+            page = browser.new_page()
+
+            page.set_extra_http_headers({
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36'
+            })
+            self.extractions = [self.__extractor.create_inference_data(page,"", i) for i in self.__urls]
 
     def __getitem__(self, index):
-        return self.extractions[index]
+        ret = self.extractions[index]
+        if not self.__include_coords:
+            return {k:v for k,v in ret.items() if k != "coords"}
+        return ret
 
     def __len__(self):
         return len(self.__urls)
