@@ -12,7 +12,22 @@ from ..vision.url_to_image import take_screenshot
 from ..pos_embeds.feature_extraction import Llama2dWebsiteFeatureExtractor
 from ..constants import MIND2WEB_IN_DIR,MIND2WEB_OUT_DIR
 
-def save_inputs_from_task(page,task:Dict,extractor:Llama2dWebsiteFeatureExtractor)->List[Tuple[str,str,str]]:
+from glob import glob
+def get_uid_to_mhtml_map()->Dict[str,str]:
+    all_mhtmls = glob(f"{MIND2WEB_IN_DIR}/task/*/processed/snapshots/*_before.mhtml")
+
+    # extract the uid from *_before.mhtml
+    get_uid = lambda path: path.split("/")[-1].split("_")[0]
+    return {
+        get_uid(path):path for path in all_mhtmls
+    }
+
+def save_inputs_from_task(
+        page,
+        task:Dict,
+        extractor:Llama2dWebsiteFeatureExtractor,
+        uid_to_mhtml:Dict[str,str]
+    )->List[Tuple[str,str,str]]:
     
     intention = task["confirmed_task"]
 
@@ -22,7 +37,7 @@ def save_inputs_from_task(page,task:Dict,extractor:Llama2dWebsiteFeatureExtracto
         action_dir = f"{MIND2WEB_OUT_DIR}/{uid}"
         os.mkdir(action_dir)
 
-        mhtml_file = f"{MIND2WEB_IN_DIR}/task/{uid}/page.mhtml"
+        mhtml_file = uid_to_mhtml[uid]
 
         pos_candidates = action["pos_candidates"]
         assert len(pos_candidates) == 1,f"Num of positive candidates is {len(pos_candidates)}!"
@@ -75,6 +90,8 @@ def load_all_tasks():
 
     extractor = Llama2dWebsiteFeatureExtractor(model_path="decapoda-research/llama-7b-hf")
 
+    uid_to_mhtml = get_uid_to_mhtml_map()
+
     with sync_playwright() as p:
         # Using the Chromium browser but you can also use 'firefox' or 'webkit'
         browser = p.chromium.launch()
@@ -85,7 +102,7 @@ def load_all_tasks():
         })
 
         for task in tqdm(train):
-            save_inputs_from_task(page,task,extractor)
+            save_inputs_from_task(page,task,extractor,uid_to_mhtml)
     
     print(f"Done loading input training data! Data is saved in {MIND2WEB_OUT_DIR}.")
 
