@@ -15,10 +15,8 @@ class PositionEmbeddingRandom(nn.Module):
         super().__init__()
         if scale is None or scale <= 0.0:
             scale = 1.0
-        self.register_buffer(
-            "positional_encoding_gaussian_matrix",
-            scale * torch.randn((2, num_pos_feats)),
-        )
+        self.positional_encoding_gaussian_matrix= scale * torch.randn((2, num_pos_feats))
+        self.positional_encoding_gaussian_matrix.cuda()
 
         # 0 is for not a point, 1 is for a point
         self.is_a_point_embed = nn.Embedding(2, num_pos_feats)
@@ -28,7 +26,7 @@ class PositionEmbeddingRandom(nn.Module):
         # TODO: for a sanity check, freeze this param to zero.
         # this will test if a normal Llama can learn to beat WebArena.
         # a gate for the positional encoding
-        self.lbd = nn.Parameter(torch.tensor([0.0]))
+        self.lbd = nn.Parameter(torch.tensor([0.0],requires_grad=True))
 
         if pin_lbd:
             self.lbd.requires_grad = False
@@ -36,6 +34,9 @@ class PositionEmbeddingRandom(nn.Module):
 
     def _pe_encoding(self, coords: torch.Tensor) -> torch.Tensor:
         """Positionally encode points that are normalized to [0,1]."""
+        if self.positional_encoding_gaussian_matrix.device != coords.device:
+            print("converting pos encodings to device",coords.device,coords.dtype,self.positional_encoding_gaussian_matrix.dtype)
+            self.positional_encoding_gaussian_matrix = self.positional_encoding_gaussian_matrix.to(coords.device).to(coords.dtype)
         # assuming coords are in [0, 1]^2 square and have d_1 x ... x d_n x 2 shape
         coords = 2 * coords - 1
         coords = coords @ self.positional_encoding_gaussian_matrix
@@ -78,8 +79,6 @@ class PositionEmbeddingRandom(nn.Module):
 
         bs,num_heads,seq_len,dim = q.shape
 
-        print("Dim:",dim)
-
         assert dim == self.num_pos_feats,f"Dim of q is {dim}, not {self.num_pos_feats}"
 
         # some coords will be [-1,-1] because they have no known position
@@ -87,10 +86,10 @@ class PositionEmbeddingRandom(nn.Module):
         is_a_point = coords[:,:,0] != -1
 
         pos_embeds = self.forward_with_coords(coords)
-        assert pos_embeds.shape == (bs,seq_len,dim)
+        assert pos_embeds.shape == (bs,seq_len,dim),f"Shape of pos_embeds is {pos_embeds.shape} - shape of coords is {coords.shape} - intended shape is {(bs,seq_len,dim)}"
 
         is_a_point_embeds = self.is_a_point_embed(is_a_point.long())
-        assert is_a_point_embeds.shape == (bs,seq_len,dim)
+        assert is_a_point_embeds.shape == (bs,seq_len,dim),f"Shape of is_a_point_embeds is {is_a_point_embeds.shape} - shape of coords is {coords.shape}"
 
         delta = pos_embeds.unsqueeze(1) + is_a_point_embeds.unsqueeze(1)
 

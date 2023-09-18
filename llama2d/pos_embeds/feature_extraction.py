@@ -103,15 +103,15 @@ class Llama2dWebsiteFeatureExtractor(object):
             # right-pad label_ids with -100, input_coords with (-1,-1), and input_ids with 0
             input_ids = torch.cat([input_ids, torch.zeros(MAX_SEQ_LEN-len(input_ids), dtype=torch.long)])
             label_ids = torch.cat([label_ids, torch.ones(MAX_SEQ_LEN-len(label_ids), dtype=torch.long)*self.__label_mask_id])
-            input_coords = torch.cat([input_coords, torch.ones(MAX_SEQ_LEN-len(input_coords), 2)*-1])
+            input_coords = torch.cat([input_coords, torch.ones(MAX_SEQ_LEN-len(input_coords), 2)*-1]).to(torch.float16)
             attention_mask = torch.cat([attention_mask, torch.zeros(MAX_SEQ_LEN-len(attention_mask), dtype=torch.long)])
 
         # return output
         return {
-            "input_ids": input_ids,
-            "coords": input_coords,
-            "labels": label_ids,
-            "attention_mask": attention_mask
+            "input_ids": input_ids.to(torch.long),
+            "coords": input_coords.to(torch.float16),
+            "labels": label_ids.to(torch.long),
+            "attention_mask": attention_mask.to(torch.long)
         }
         
 
