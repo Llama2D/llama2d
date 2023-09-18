@@ -1,33 +1,30 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+base = "/home/ubuntu"
+
 import sys
 
 import os
-sys.path.append('/home/ubuntu/llama-recipes/src')
+sys.path.append(f'{base}/llama-recipes/src')
 
 import llama_recipes
 from llama_recipes.utils.dataset_utils import get_preprocessed_dataset
 from llama_recipes.configs.datasets import samsum_dataset
-sys.path.append("/home/ubuntu/llama2d")
+sys.path.append(f"{base}/llama2d")
+
 from llama2d.pos_embeds.feature_extraction import Llama2dPretrainingDataset
+from llama2d.pos_embeds.export_dataset import save_dataset,LoadedDataset
+from llama2d.constants import CACHED_PRETRAIN_DIR
 
 import torch
 from transformers import LlamaForCausalLM, LlamaTokenizer
 
-os.chdir("/home/ubuntu/llama-recipes/")
+os.chdir(f"{base}/llama-recipes/")
 
 
 model_id="./models_hf/7B"
 output_dir = "tmp/llama2d-output-pretrained-1"
-
-tokenizer = LlamaTokenizer.from_pretrained(model_id)
-
-from transformers import LlamaForCausalLM, LlamaTokenizer
-model =LlamaForCausalLM.from_pretrained(model_id, load_in_8bit=True, device_map='auto', torch_dtype=torch.float16)
-embedder = model.embedder[0]
-embedder.cuda()
-embedder.positional_encoding_gaussian_matrix.cuda() # it's not a parameter, so have to convert it manually
 
 urls = ["https://github.com/OSU-NLP-Group/Mind2Web",
                                             "https://stackoverflow.com/questions/60352003/how-to-download-webpage-as-mhtml"]
@@ -39,11 +36,19 @@ if create_new:
     dataset = Llama2dPretrainingDataset(model=model_id,
         urls=urls,include_coords=True)
 
-    torch.save(dataset,"urls_dataset.pt")
+    save_dataset(dataset,CACHED_PRETRAIN_DIR)
 else:
-    dataset = torch.load("urls_dataset.pt")
+    dataset = LoadedDataset(CACHED_PRETRAIN_DIR)
 
 assert "coords" in dataset[0]
+
+tokenizer = LlamaTokenizer.from_pretrained(model_id)
+
+from transformers import LlamaForCausalLM, LlamaTokenizer
+model =LlamaForCausalLM.from_pretrained(model_id, load_in_8bit=True, device_map='auto', torch_dtype=torch.float16)
+embedder = model.embedder[0]
+embedder.cuda()
+embedder.positional_encoding_gaussian_matrix.cuda() # it's not a parameter, so have to convert it manually
 
 
 # In[4]:
