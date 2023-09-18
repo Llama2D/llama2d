@@ -12,4 +12,4 @@ class LoadedDataset(torch.utils.data.Dataset):
     def __getitem__(self,i):
         return torch.load(f"{self.load_dir}/{i}.pt")
     def __len__(self):
-        return len(os.listdir(self.load_dir)
+        return len(os.listdir(self.load_dir))
