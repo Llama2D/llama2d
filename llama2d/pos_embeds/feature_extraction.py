@@ -9,6 +9,7 @@ import tempfile
 from transformers import LlamaTokenizer
 from ..vision.ocr import ImageAnnotator
 from ..vision.url_to_image.url_to_image import take_screenshot,extract_domain
+from ..constants import MAX_SEQ_LEN, MAX_PAGE_LEN
 print("extract_domain",extract_domain)
 
 from glob import glob
@@ -47,6 +48,10 @@ class Llama2dWebsiteFeatureExtractor(object):
         image_token_locs = [[annot.midpoint_normalized
                             for j in range(len(i))]
                             for i, annot in zip(image_tokens, annotations.words)]
+
+        image_tokens = image_tokens[:MAX_PAGE_LEN]
+        image_token_locs = image_token_locs[:MAX_PAGE_LEN]
+
         # extract tokens from the prompt
         prompt_tokens = self.tokenizer.tokenize(prompt)
         # and use (-1,-1) for the 2d embeddings for the prompt
@@ -85,6 +90,18 @@ class Llama2dWebsiteFeatureExtractor(object):
         input_coords = torch.tensor(input_coords)
         input_ids = torch.tensor(input_ids)
         label_ids = torch.tensor(label_ids)
+
+        # pad or truncate
+        if len(input_ids) > MAX_SEQ_LEN:
+            input_ids = input_ids[:MAX_SEQ_LEN]
+            label_ids = label_ids[:MAX_SEQ_LEN]
+            input_coords = input_coords[:MAX_SEQ_LEN]
+        elif len(input_ids) < MAX_SEQ_LEN:
+            # right-pad label_ids with -100, input_coords with (-1,-1), and input_ids with 0
+            input_ids = torch.cat([input_ids, torch.zeros(MAX_SEQ_LEN-len(input_ids), dtype=torch.long)])
+            label_ids = torch.cat([label_ids, torch.ones(MAX_SEQ_LEN-len(label_ids), dtype=torch.long)*self.__label_mask_id])
+            input_coords = torch.cat([input_coords, torch.ones(MAX_SEQ_LEN-len(input_coords), 2)*-1])
+
         # return output
         return {
             "input_ids": input_ids,
