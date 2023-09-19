@@ -1,0 +1,11 @@
+{
+  "pos_candidates": [
+    {
+      "attributes": "{\"backend_node_id\": \"136\", \"bounding_box_rect\": \"110,607.390625,264,78\", \"class\": \"MuiSelect-root MuiSelect-select jss31 MuiSelect-filled jss32 MuiInputBase-input MuiFilledInput-input jss22 MuiInputBase-inputAdornedStart MuiFilledInput-inputAdornedStart\", \"id\": \"reservations-city-search-type\", \"name\": \"type\", \"data_pw_testid_buckeye_candidate\": \"1\"}",
+      "backend_node_id": "136",
+      "is_original_target": true,
+      "is_top_level_target": true,
+      "tag": "select"
+    }
+  ]
+}
