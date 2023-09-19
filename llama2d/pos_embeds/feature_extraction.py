@@ -10,7 +10,6 @@ from transformers import LlamaTokenizer
 from ..vision.ocr import ImageAnnotator
 from ..vision.url_to_image.url_to_image import take_screenshot,extract_domain
 from ..constants import MAX_SEQ_LEN, MAX_PAGE_LEN
-print("extract_domain",extract_domain)
 
 from glob import glob
 from torch.utils.data import Dataset
