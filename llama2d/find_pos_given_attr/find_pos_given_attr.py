@@ -3,10 +3,10 @@ from pprint import pprint
 
 # Load the Mind2Web dataset
 dataset = load_dataset("osunlp/Mind2Web")
-example = dataset['train'][0]
+example = dataset["train"][0]
 
 
-attrs = example["actions"][0]["pos_candidates"][0]['attributes']
+attrs = example["actions"][0]["pos_candidates"][0]["attributes"]
 
 
 import requests
@@ -16,14 +16,14 @@ import json
 # URL of the webpage you want to scrape
 url = "http://example.com"
 
-print(example['domain'])
-print(example['subdomain'])
+print(example["domain"])
+print(example["subdomain"])
 
 # We might be able to assume website we can append .com to it
-print(example['website'])
-print(len(dataset['train']))
+print(example["website"])
+print(len(dataset["train"]))
 
-print('Attemping to find all tags that contains that contain the attrs:')
+print("Attemping to find all tags that contains that contain the attrs:")
 print(type(attrs))
 print(attrs)
 
@@ -44,4 +44,3 @@ if matching_tags:
         print(tag)
 else:
     print("No matching tags found!")
-

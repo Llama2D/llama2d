@@ -9,7 +9,7 @@ tgi_image = (
     Image.from_registry("ghcr.io/huggingface/text-generation-inference:1.0.3")
     .dockerfile_commands("ENTRYPOINT []")
     .pip_install("text-generation", "transformers>=4.33.0")
-    #.pip_install("git+https://github.com/Llama2D/transformers")
+    # .pip_install("git+https://github.com/Llama2D/transformers")
     .env(dict(HUGGINGFACE_HUB_CACHE="/pretrained"))
 )
 
