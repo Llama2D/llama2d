@@ -1,8 +1,9 @@
 import os
+
 curr_dir = os.path.dirname(os.path.realpath(__file__))
 
 # 3 times the resolution of a 1080p monitor
-SCREEN_RESOLUTION = (1920, 1080*3)
+SCREEN_RESOLUTION = (1920, 1080 * 3)
 
 DATA_DIR = f"{curr_dir}/../data"
 

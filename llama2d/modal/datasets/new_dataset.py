@@ -3,13 +3,15 @@ from llama2d.llama2d.datasets.pretraining_urls import urls
 
 from llama_recipes.datasets.utils import Concatenator
 
+
 def format_text(row, tokenizer):
     return tokenizer(row)
 
 
 def get_custom_dataset(dataset_config, tokenizer, split):
-    dataset = Llama2dPretrainingDataset(model="decapoda-research/llama-7b-hf",
-                                        urls=urls)
+    dataset = Llama2dPretrainingDataset(
+        model="decapoda-research/llama-7b-hf", urls=urls
+    )
     full_dataset = dataset
 
     # Since the dataset has no train/test split, we create one and select it
