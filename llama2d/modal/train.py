@@ -126,7 +126,7 @@ def main(
             "lora_config.r": 8,
             "lora_config.lora_alpha": 16,
 
-            "use_2d": True,
+            "use_2d": False,
             "ignore_pos_embeds": True,
 
             "label_names": ["coords"],

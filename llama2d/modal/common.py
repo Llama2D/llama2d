@@ -32,7 +32,7 @@ image = (
     .pip_install("huggingface_hub==0.17.1", "hf-transfer==0.1.3", "scipy")
     .pip_install("gdown","google-cloud-vision","sentencepiece","playwright")
     # .run_commands("playwright install && playwright install-deps")
-    .pip_install("git+https://github.com/Llama2D/transformers.git@16491b86220bab3cc931d070e8ae2fcf552063e6")
+    .pip_install("git+https://github.com/Llama2D/transformers.git@9a0e9988341fc9e56ab17a5c54afbc2e6c1b0fa1")
     # copy from cuda*.so to cpu.so
     .pip_install(
         f"llama-recipes @ git+https://github.com/Llama2D/llama-recipes.git@3747077fd0fac5369869fdf009a991b486e505d4",

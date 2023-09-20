@@ -11,6 +11,4 @@ def get_custom_dataset(dataset_config, tokenizer, split):
     import os
     os.system("unzip -qo cached-pretrain.zip")
 
-    print("Use 2d?", use_2d)
-
     return CachedDataset("cached-pretrain",use_2d=use_2d)
