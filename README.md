@@ -79,6 +79,8 @@ You can cache a dataset with the `save_dataset` function in `llama2d/datasets/ca
 
 ### Local training
 
+> Note from Andrew Healey: I will get rid of local training once we get Llama2D pretraining/training on Modal. This is very temporary.
+
 First, follow the [`facebookresearch/llama-recipes`](https://github.com/facebookresearch/llama-recipes/blob/main/examples/quickstart.ipynb) quickstart instructions to download the Llama weights.
 
 This should result in a directory structure like so:

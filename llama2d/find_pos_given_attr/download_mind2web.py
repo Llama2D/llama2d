@@ -7,13 +7,13 @@ dataset = load_dataset("osunlp/Mind2Web")
 
 from pprint import pprint
 
-example = dataset['train'][0]
+example = dataset["train"][0]
 
 pprint(example)
 # breakpoint()
 
-actions = example['actions']
+actions = example["actions"]
 
 print(actions[0].keys())
 
-print(example['action_reprs'])
+print(example["action_reprs"])
