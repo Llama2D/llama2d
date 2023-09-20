@@ -6,6 +6,7 @@ from llama2d.datasets.pretraining_urls import urls
 
 from llama_recipes.datasets.utils import Concatenator
 
+
 def format_text(row, tokenizer):
     return tokenizer(row)
 
