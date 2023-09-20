@@ -4,3 +4,6 @@
 [submodule "llama-recipes"]
 	path = llama-recipes
 	url = https://github.com/facebookresearch/llama-recipes.git
+[submodule "llama-finetuning"]
+	path = llama-finetuning
+	url = https://github.com/Llama2D/llama-finetuning.git
