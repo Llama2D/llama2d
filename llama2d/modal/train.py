@@ -19,6 +19,8 @@ def download(model_name: str):
     from huggingface_hub import snapshot_download
     from transformers.utils import move_cache
 
+    from llama_recipes.finetuning import is_llama2d_enabled
+
     try:
         snapshot_download(model_name, local_files_only=True)
         print(f"Volume contains {model_name}.")
@@ -32,7 +34,8 @@ def download(model_name: str):
 
 
 def library_entrypoint(config):
-    from llama_recipes.finetuning import main
+    from llama_recipes.finetuning import main,is_llama2d_enabled
+    print("Is llama2d enabled?", is_llama2d_enabled)
 
     main(**config)
 

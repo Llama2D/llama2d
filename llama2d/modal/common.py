@@ -16,8 +16,8 @@ BASE_MODELS = {
 }
 
 import os
-# ../../secrets/
 secrets_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../secrets/"
+data_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../data/"
 
 image = (
     Image.micromamba()
@@ -27,18 +27,19 @@ image = (
         "cuda-nvcc",
         channels=["conda-forge", "nvidia"],
     )
-    .apt_install("git")
+    .apt_install("git","unzip")
+    .pip_install("huggingface_hub==0.17.1", "hf-transfer==0.1.3", "scipy")
+    .pip_install("gdown","google-cloud-vision","sentencepiece","playwright")
+    # .run_commands("playwright install && playwright install-deps")
+    .pip_install("git+https://github.com/Llama2D/transformers")
     .pip_install(
-        "llama-recipes @ git+https://github.com/Llama2D/llama-recipes.git",
+        f"llama-recipes @ git+https://github.com/Llama2D/llama-recipes.git@fc8c408e553335b8e3717fb2bb9e59402ff8110d",
         extra_index_url="https://download.pytorch.org/whl/nightly/cu118",
         pre=True,
     )
-    .pip_install("huggingface_hub==0.17.1", "hf-transfer==0.1.3", "scipy")
-    .pip_install("git+https://github.com/Llama2D/transformers")
     .env(dict(HUGGINGFACE_HUB_CACHE="/pretrained", HF_HUB_ENABLE_HF_TRANSFER="1"))
-    .pip_install("gdown","google-cloud-vision","sentencepiece","playwright")
-    .run_commands("playwright install && playwright install-deps")
     .copy_local_dir(secrets_dir, "/root/secrets")
+    # .copy_local_dir(data_dir, "/root/data")
 )
 
 stub = Stub("llama-finetuning", image=image, secrets=[Secret.from_name("huggingface")])
