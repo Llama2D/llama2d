@@ -5,7 +5,7 @@
 
 Set-up via
 ```
-pip install -r reqs.txt
+bash setup.sh
 ```
 
 * [Login to Hugginface](https://huggingface.co/docs/huggingface_hub/guides/upload)
