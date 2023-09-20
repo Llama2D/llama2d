@@ -15,6 +15,10 @@ BASE_MODELS = {
     "chat70": "meta-llama/Llama-2-70b-chat-hf",
 }
 
+import os
+# ../../secrets/
+secrets_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../secrets/"
+
 image = (
     Image.micromamba()
     .micromamba_install(
@@ -32,6 +36,9 @@ image = (
     .pip_install("huggingface_hub==0.17.1", "hf-transfer==0.1.3", "scipy")
     .pip_install("git+https://github.com/Llama2D/transformers")
     .env(dict(HUGGINGFACE_HUB_CACHE="/pretrained", HF_HUB_ENABLE_HF_TRANSFER="1"))
+    .pip_install("gdown","google-cloud-vision","sentencepiece","playwright")
+    .run_commands("playwright install && playwright install-deps")
+    .copy_local_dir(secrets_dir, "/root/secrets")
 )
 
 stub = Stub("llama-finetuning", image=image, secrets=[Secret.from_name("huggingface")])

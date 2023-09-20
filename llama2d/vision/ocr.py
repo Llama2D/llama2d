@@ -27,7 +27,7 @@ class ImageAnnotator(object):
             print(os.getcwd())
             self.client = vision.ImageAnnotatorClient.from_service_account_file(credentials)
         except Exception as e:
-            raise ValueError("OCR Object creation FAILED!\n\n@@@HINT: did you get ./secrets/llama2d-dee298d9a98d.json from the slack channel?")
+            raise ValueError("OCR Object creation FAILED!\n\n@@@HINT: did you get secrets/google-vision.json from the slack channel?")
 
         self.__features = [vision.Feature(type_=vision.Feature.Type.TEXT_DETECTION)]
 

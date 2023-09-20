@@ -1,7 +1,13 @@
-from modal import gpu, Mount
+from modal import gpu, Mount, Secret
 
 from common import stub, N_GPUS, GPU_MEM, BASE_MODELS, VOLUME_CONFIG
 
+import sys
+import os
+
+# add llama2d to path
+sys.path.append(f"{os.path.dirname(os.path.realpath(__file__))}/../../.")
+import llama2d
 
 @stub.function(
     volumes=VOLUME_CONFIG,
@@ -9,6 +15,7 @@ from common import stub, N_GPUS, GPU_MEM, BASE_MODELS, VOLUME_CONFIG
     timeout=3600 * 4,
 )
 def download(model_name: str):
+
     from huggingface_hub import snapshot_download
     from transformers.utils import move_cache
 
@@ -53,15 +60,21 @@ def train(train_kwargs):
     stub.results_volume.commit()
 
 
+import modal
 @stub.local_entrypoint()  # Runs locally to kick off remote training job.
 def main(
     dataset: str,
-    base: str = "chat7",
+    base: str = "base7",
     run_id: str = "",
     num_epochs: int = 10,
     batch_size: int = 16,
 ):
+    import os
     print(f"Welcome to Modal Llama fine-tuning.")
+
+    # print(dict(Secret.from_name("huggingface").__dict__))
+    # os.environ["HUGGINGFACE_TOKEN"] = Secret.from_name("huggingface")["HUGGINGFACE_TOKEN"]
+    # print(f"Huggingface API key is {os.environ['HUGGINGFACE_TOKEN']}.")
 
     model_name = BASE_MODELS[base]
     print(f"Syncing base model {model_name} to volume.")
