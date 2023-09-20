@@ -2,6 +2,8 @@ import torch
 from torch import nn
 
 def save_dataset(dataset,save_dir):
+    if not os.path.exists(save_dir):
+        os.mkdir(save_dir)
     for i in range(len(dataset)):
         torch.save(dataset[i],f"{save_dir}/{i}.pt")
 
