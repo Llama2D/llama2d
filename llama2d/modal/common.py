@@ -18,6 +18,7 @@ BASE_MODELS = {
 import os
 secrets_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../secrets/"
 data_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../data/"
+dataset_dir = f"{os.path.dirname(os.path.realpath(__file__))}/datasets/"
 
 image = (
     Image.micromamba()
@@ -31,14 +32,17 @@ image = (
     .pip_install("huggingface_hub==0.17.1", "hf-transfer==0.1.3", "scipy")
     .pip_install("gdown","google-cloud-vision","sentencepiece","playwright")
     # .run_commands("playwright install && playwright install-deps")
-    .pip_install("git+https://github.com/Llama2D/transformers")
+    .pip_install("git+https://github.com/Llama2D/transformers.git@16491b86220bab3cc931d070e8ae2fcf552063e6")
+    # copy from cuda*.so to cpu.so
     .pip_install(
-        f"llama-recipes @ git+https://github.com/Llama2D/llama-recipes.git@fc8c408e553335b8e3717fb2bb9e59402ff8110d",
+        f"llama-recipes @ git+https://github.com/Llama2D/llama-recipes.git@3747077fd0fac5369869fdf009a991b486e505d4",
         extra_index_url="https://download.pytorch.org/whl/nightly/cu118",
         pre=True,
     )
+    # .run_commands("cp /opt/conda/lib/python3.9/site-packages/bitsandbytes/libbitsandbytes_cuda*.so /opt/conda/lib/python3.9/site-packages/bitsandbytes/libbitsandbytes_cpu.so")
     .env(dict(HUGGINGFACE_HUB_CACHE="/pretrained", HF_HUB_ENABLE_HF_TRANSFER="1"))
     .copy_local_dir(secrets_dir, "/root/secrets")
+    .copy_local_dir(dataset_dir, "/root/")
     # .copy_local_dir(data_dir, "/root/data")
 )
 

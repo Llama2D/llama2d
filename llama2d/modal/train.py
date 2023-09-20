@@ -13,8 +13,12 @@ import llama2d
     volumes=VOLUME_CONFIG,
     memory=1024 * 100,
     timeout=3600 * 4,
+    secrets=[Secret.from_name("huggingface")],
 )
 def download(model_name: str):
+
+    assert 'HUGGINGFACE_TOKEN' in os.environ, 'Please set the HUGGINGFACE_TOKEN environment variable.'
+    from huggingface_hub.hf_api import HfFolder; HfFolder.save_token(os.environ['HUGGINGFACE_TOKEN'])
 
     from huggingface_hub import snapshot_download
     from transformers.utils import move_cache
@@ -34,8 +38,12 @@ def download(model_name: str):
 
 
 def library_entrypoint(config):
+    assert 'HUGGINGFACE_TOKEN' in os.environ, 'Please set the HUGGINGFACE_TOKEN environment variable.'
+    from huggingface_hub.hf_api import HfFolder; HfFolder.save_token(os.environ['HUGGINGFACE_TOKEN'])
+
     from llama_recipes.finetuning import main,is_llama2d_enabled
     print("Is llama2d enabled?", is_llama2d_enabled)
+    print(config)
 
     main(**config)
 
@@ -74,6 +82,7 @@ def main(
 ):
     import os
     print(f"Welcome to Modal Llama fine-tuning.")
+    print(f"Dataset is {dataset}.")
 
     # print(dict(Secret.from_name("huggingface").__dict__))
     # os.environ["HUGGINGFACE_TOKEN"] = Secret.from_name("huggingface")["HUGGINGFACE_TOKEN"]
@@ -116,6 +125,11 @@ def main(
             "peft_method": "lora",
             "lora_config.r": 8,
             "lora_config.lora_alpha": 16,
+
+            "use_2d": True,
+            "ignore_pos_embeds": True,
+
+            "label_names": ["coords"],
         }
     )
 
