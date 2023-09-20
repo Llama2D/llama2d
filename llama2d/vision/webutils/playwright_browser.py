@@ -1,13 +1,11 @@
+import nest_asyncio
+from langchain.agents import AgentType, initialize_agent
 from langchain.agents.agent_toolkits import PlayWrightBrowserToolkit
+from langchain.chat_models import ChatAnthropic
 from langchain.tools.playwright.utils import (
-    create_async_playwright_browser,
     create_sync_playwright_browser,  # A synchronous browser is available, though it isn't compatible with jupyter.
 )
-
-from langchain.agents import initialize_agent, AgentType
-from langchain.chat_models import ChatAnthropic
-
-import nest_asyncio
+from langchain.tools.playwright.utils import create_async_playwright_browser
 
 nest_asyncio.apply()
 DEFAULT_STARTER_URL = {"url": "https://web.archive.org/web/20230428131116/https://www.cnn.com/world"}

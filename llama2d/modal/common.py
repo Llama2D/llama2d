@@ -1,4 +1,4 @@
-from modal import Stub, Image, Volume, Secret
+from modal import Image, Secret, Stub, Volume
 
 N_GPUS = 4
 GPU_MEM = 80

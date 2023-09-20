@@ -1,6 +1,5 @@
+from common import BASE_MODELS, stub
 from modal import Mount, gpu
-
-from common import stub, BASE_MODELS
 
 
 @stub.function(
@@ -13,9 +12,9 @@ from common import stub, BASE_MODELS
     ],
 )
 def dataset(base: str = "chat7", dataset: str = "local_dataset.py"):
-    from llama_recipes.utils.dataset_utils import get_custom_dataset
     from llama_recipes.configs.datasets import custom_dataset
     from llama_recipes.utils.config_utils import update_config
+    from llama_recipes.utils.dataset_utils import get_custom_dataset
 
     from transformers import AutoTokenizer
 

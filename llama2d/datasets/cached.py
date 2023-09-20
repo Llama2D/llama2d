@@ -1,5 +1,4 @@
 import torch
-from torch import nn
 
 
 def save_dataset(dataset, save_dir):

@@ -1,7 +1,7 @@
-from langchain.utilities import SerpAPIWrapper
 from langchain.agents import Tool
-from langchain.tools.file_management.write import WriteFileTool
 from langchain.tools.file_management.read import ReadFileTool
+from langchain.tools.file_management.write import WriteFileTool
+from langchain.utilities import SerpAPIWrapper
 
 # search agent
 search = SerpAPIWrapper()
@@ -15,10 +15,11 @@ tools = [
     ReadFileTool(),
 ]
 
-# setup memory
-from langchain.vectorstores import FAISS
 from langchain.docstore import InMemoryDocstore
 from langchain.embeddings import OpenAIEmbeddings
+
+# setup memory
+from langchain.vectorstores import FAISS
 
 # Define your embedding model
 embeddings_model = OpenAIEmbeddings()

@@ -1,18 +1,17 @@
-from typing import Dict, List, Tuple
 import json
 import os
+from glob import glob
+from typing import Dict, List, Tuple
+
 import torch
+from datasets import load_dataset
+from playwright.sync_api import sync_playwright
 from tqdm import tqdm
 
-from playwright.sync_api import sync_playwright
-from datasets import load_dataset
-
+from ..constants import MIND2WEB_IN_DIR, MIND2WEB_OUT_DIR
+from ..pos_embeds.feature_extraction import Llama2dWebsiteFeatureExtractor
 from ..tagging.add_tags_to_page import add_tags_to_webpage
 from ..vision.url_to_image import take_screenshot
-from ..pos_embeds.feature_extraction import Llama2dWebsiteFeatureExtractor
-from ..constants import MIND2WEB_IN_DIR, MIND2WEB_OUT_DIR
-
-from glob import glob
 
 
 def get_uid_to_mhtml_map() -> Dict[str, str]:
