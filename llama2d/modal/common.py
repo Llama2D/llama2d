@@ -36,7 +36,7 @@ image = (
     .pip_install("git+https://github.com/llama2d/transformers.git@22d874b4e633b97cfe2ae6736efc5f0e5120e061")
     # copy from cuda*.so to cpu.so
     .pip_install(
-        f"llama-recipes @ git+https://github.com/Llama2D/llama-recipes.git@8db2c74cc891f4ec04256da1f60daf64e2cf20cb",
+        f"llama-recipes @ git+https://github.com/modal-labs/llama-recipes.git",
         extra_index_url="https://download.pytorch.org/whl/nightly/cu118",
         pre=True,
     )
@@ -44,8 +44,8 @@ image = (
     .env(dict(HUGGINGFACE_HUB_CACHE="/pretrained", HF_HUB_ENABLE_HF_TRANSFER="1"))
     .copy_local_dir(secrets_dir, "/root/secrets")
     # .run_commands("pip install 'llama-recipes @ git+https://github.com/Llama2D/llama-recipes.git@7e2153520aaa8d20a64bbcd510aedde6af3b281f' --no-deps")
-    .copy_local_file("flat_param.py","/opt/conda/lib/python3.9/site-packages/torch/distributed/fsdp/flat_param.py")
-    .run_commands()
+    # .copy_local_file("flat_param.py","/opt/conda/lib/python3.9/site-packages/torch/distributed/fsdp/flat_param.py")
+    .run_commands("pip install 'llama-recipes @ git+https://github.com/llama2d/llama-recipes.git@andrew-dev' --no-deps")
 )
 
 stub = Stub("llama-finetuning", image=image, secrets=[Secret.from_name("huggingface")])
