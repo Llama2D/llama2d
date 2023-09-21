@@ -5,10 +5,8 @@ Extract features using the tokenizer, including text and image
 
 import os
 import tempfile
-from glob import glob
 
 import torch
-from torch.utils.data import Dataset
 
 from transformers import LlamaTokenizer
 
@@ -34,7 +32,7 @@ class Llama2dWebsiteFeatureExtractor(object):
         self.__label_mask_id = label_mask_id
         self.__mask_out_body = mask_out_body
 
-    def __process(self, prompt, page, output):
+    def process(self, prompt, page, output):
         # run OCR
         annotations = self.__annotator(page)
 

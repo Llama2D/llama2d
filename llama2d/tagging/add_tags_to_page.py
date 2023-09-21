@@ -15,15 +15,15 @@ def add_tags_to_webpage(page, mind2web_action) -> int:
     attrs = json.loads(mind2web_action["pos_candidates"][0]["attributes"])
 
     cls = attrs.get("class", None)
-    id = attrs.get("id", None)
+    tag_id = attrs.get("id", None)
 
-    print(f"Looking for element with class {cls} and id {id}")
+    print(f"Looking for element with class {cls} and id {tag_id}")
 
     curr_dir = os.path.dirname(os.path.realpath(__file__))
     with open(f"{curr_dir}/tagUtils.js", "r") as f:
         page.evaluate(f.read())
 
-    gt_tag_id = page.evaluate(f"tagifyWebpage({json.dumps(cls)},{json.dumps(id)})")
+    gt_tag_id = page.evaluate(f"tagifyWebpage({json.dumps(cls)},{json.dumps(tag_id)})")
     return int(gt_tag_id)
 
 
