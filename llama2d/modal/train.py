@@ -42,12 +42,14 @@ def library_entrypoint(config):
     from llama_recipes.finetuning import main
     print(config)
 
-    from transformers import LlamaForCausalLM
-    from llama2d.model.modeling_llama import Llama2DForCausalLM
-    from llama2d.model.configuration_llama import Llama2DConfig
+    from transformers import LlamaForCausalLM, LlamaConfig
+    # from llama2d.model.modeling_llama import Llama2DForCausalLM
+    # from llama2d.model.configuration_llama import Llama2DConfig
+    # from llama2d.model.modeling_llama_old import LlamaForCausalLM
+    # from llama2d.model.configuration_llama_old import LlamaConfig
 
-    Llama = Llama2DForCausalLM
-    LlamaConfig = Llama2DConfig
+    Llama = LlamaForCausalLM
+    # LlamaConfig = Llama2DConfig
 
     main(Llama,LlamaConfig,**config)
 
@@ -82,7 +84,7 @@ def main(
     base: str = "base7",
     run_id: str = "",
     num_epochs: int = 10,
-    batch_size: int = 16,
+    batch_size: int = 8,
 ):
     import os
     print(f"Welcome to Modal Llama fine-tuning.")
@@ -130,8 +132,8 @@ def main(
             "lora_config.r": 8,
             "lora_config.lora_alpha": 16,
 
-            "use_2d": False,
-            "ignore_pos_embeds": True,
+            "use_2d": True,
+            "ignore_pos_embeds": False,
 
             # make peft hopefully make coords tunable
             "label_names": ["coords"],
