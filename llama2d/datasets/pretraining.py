@@ -1,10 +1,11 @@
+from playwright.sync_api import sync_playwright
+from torch.utils.data import Dataset
+
 from llama2d.constants import PRETRAINING_CACHE_DIR
 from llama2d.datasets.cached import save_dataset
-from torch.utils.data import Dataset
-from .pretraining_urls import urls
-from ..vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
 
-from playwright.sync_api import sync_playwright
+from ..vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
+from .pretraining_urls import urls
 
 
 class Llama2dPretrainingDataset(Dataset):

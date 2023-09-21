@@ -1,5 +1,6 @@
 import torch
-from torch import nn
+import os
+from glob import glob
 
 
 def save_dataset(dataset, save_dir):
@@ -7,10 +8,6 @@ def save_dataset(dataset, save_dir):
         os.mkdir(save_dir)
     for i in range(len(dataset)):
         torch.save(dataset[i], f"{save_dir}/{i}.pt")
-
-
-import os
-from glob import glob
 
 
 class CachedDataset(torch.utils.data.Dataset):

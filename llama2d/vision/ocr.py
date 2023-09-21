@@ -1,7 +1,7 @@
-from google.cloud import vision
 from dataclasses import dataclass
+from typing import List, Tuple
 
-from typing import Tuple, List
+from google.cloud import vision
 
 from ..constants import SECRETS_FILE
 

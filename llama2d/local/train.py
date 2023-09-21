@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import sys
 import os
-import torch
+import sys
 from pathlib import Path
+
+import torch
 
 curr_dir = os.path.dirname(os.path.realpath(__file__))
 base = f"{curr_dir}/../../.."
@@ -33,10 +34,10 @@ use_cached_dataset = True
 
 sys.path.append(f"{base}/llama2d")
 os.chdir(f"{base}/llama2d")
-from llama2d.datasets.cached import save_dataset, CachedDataset
-from llama2d.vision.url_to_llama_input import Llama2dPretrainingDataset
-from llama2d.constants import PRETRAINING_CACHE_DIR, MODEL_EXPORT_DIR
+from llama2d.constants import MODEL_EXPORT_DIR, PRETRAINING_CACHE_DIR
+from llama2d.datasets.cached import CachedDataset, save_dataset
 from llama2d.datasets.pretraining_urls import urls
+from llama2d.vision.url_to_llama_input import Llama2dPretrainingDataset
 
 output_dir = f"{base}/llama2d/models/{output_name}"
 
@@ -58,7 +59,7 @@ else:
 ### Model loading
 ###
 
-from transformers import LlamaForCausalLM, LlamaTokenizer, Llama2DForCausalLM
+from transformers import Llama2DForCausalLM, LlamaForCausalLM, LlamaTokenizer
 
 cls = Llama2DForCausalLM if use_2d else LlamaForCausalLM
 
@@ -102,9 +103,9 @@ model.train()
 
 def create_peft_config(model):
     from peft import (
-        get_peft_model,
         LoraConfig,
         TaskType,
+        get_peft_model,
         prepare_model_for_int8_training,
     )
 
@@ -138,8 +139,9 @@ def create_peft_config(model):
 # create peft config
 model, lora_config = create_peft_config(model)
 
-from transformers import TrainerCallback
 from contextlib import nullcontext
+
+from transformers import TrainerCallback
 
 enable_profiler = False
 config = {
@@ -182,7 +184,7 @@ if enable_profiler:
 else:
     profiler = nullcontext()
 
-from transformers import default_data_collator, Trainer, TrainingArguments
+from transformers import Trainer, TrainingArguments, default_data_collator
 
 # Define training args
 training_args = TrainingArguments(

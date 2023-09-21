@@ -1,9 +1,8 @@
-from modal import Image, gpu, method
-
-import subprocess
 import os
+import subprocess
 
-from common import stub, BASE_MODELS, VOLUME_CONFIG
+from common import BASE_MODELS, VOLUME_CONFIG, stub
+from modal import Image, gpu, method
 
 tgi_image = (
     Image.from_registry("ghcr.io/huggingface/text-generation-inference:1.0.3")
@@ -37,9 +36,10 @@ def merge(run_id: str, commit: bool = False):
 )
 class Model:
     def __init__(self, base: str = "", run_id: str = ""):
-        from text_generation import AsyncClient
         import socket
         import time
+
+        from text_generation import AsyncClient
 
         model = f"/results/{run_id}/merged" if run_id else BASE_MODELS[base]
 
