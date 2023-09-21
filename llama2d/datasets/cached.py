@@ -11,12 +11,16 @@ def save_dataset(dataset, save_dir):
 
 
 class CachedDataset(torch.utils.data.Dataset):
-    def __init__(self, load_dir):
+    def __init__(self, load_dir, use_2d=True):
         self.load_dir = load_dir
         self.files = sorted(glob(f"{load_dir}/*.pt"))
+        self.use_2d = use_2d
 
     def __getitem__(self, i):
-        return torch.load(self.files[i])
+        ret = torch.load(self.files[i])
+        if not self.use_2d:
+            return {k: v for k, v in ret.items() if k != "coords"}
+        return ret
 
     def __len__(self):
         return len(self.files)

@@ -135,7 +135,7 @@ class Llama2dWebsiteFeatureExtractor(object):
         # return output
         return {
             "input_ids": input_ids.to(torch.long),
-            "coords": input_coords.to(torch.float16),
+            "coords": input_coords.to(torch.bfloat16),
             "labels": label_ids.to(torch.long),
             "attention_mask": attention_mask.to(torch.long),
         }

@@ -1,16 +1,29 @@
 from common import BASE_MODELS, GPU_MEM, N_GPUS, VOLUME_CONFIG, stub
 from modal import Mount, gpu
 
+import sys
+import os
+
+# add llama2d to path
+sys.path.append(f"{os.path.dirname(os.path.realpath(__file__))}/../../.")
+import llama2d
 
 @stub.function(
     volumes=VOLUME_CONFIG,
     memory=1024 * 100,
     timeout=3600 * 4,
+    secrets=[Secret.from_name("huggingface")],
 )
 def download(model_name: str):
+
+    assert 'HUGGINGFACE_TOKEN' in os.environ, 'Please set the HUGGINGFACE_TOKEN environment variable.'
+    from huggingface_hub.hf_api import HfFolder; HfFolder.save_token(os.environ['HUGGINGFACE_TOKEN'])
+
     from huggingface_hub import snapshot_download
 
     from transformers.utils import move_cache
+
+    from llama_recipes.finetuning import is_llama2d_enabled
 
     try:
         snapshot_download(model_name, local_files_only=True)
@@ -25,7 +38,12 @@ def download(model_name: str):
 
 
 def library_entrypoint(config):
-    from llama_recipes.finetuning import main
+    assert 'HUGGINGFACE_TOKEN' in os.environ, 'Please set the HUGGINGFACE_TOKEN environment variable.'
+    from huggingface_hub.hf_api import HfFolder; HfFolder.save_token(os.environ['HUGGINGFACE_TOKEN'])
+
+    from llama_recipes.finetuning import main,is_llama2d_enabled
+    print("Is llama2d enabled?", is_llama2d_enabled)
+    print(config)
 
     main(**config)
 
@@ -53,15 +71,22 @@ def train(train_kwargs):
     stub.results_volume.commit()
 
 
+import modal
 @stub.local_entrypoint()  # Runs locally to kick off remote training job.
 def main(
     dataset: str,
-    base: str = "chat7",
+    base: str = "base7",
     run_id: str = "",
     num_epochs: int = 10,
     batch_size: int = 16,
 ):
+    import os
     print(f"Welcome to Modal Llama fine-tuning.")
+    print(f"Dataset is {dataset}.")
+
+    # print(dict(Secret.from_name("huggingface").__dict__))
+    # os.environ["HUGGINGFACE_TOKEN"] = Secret.from_name("huggingface")["HUGGINGFACE_TOKEN"]
+    # print(f"Huggingface API key is {os.environ['HUGGINGFACE_TOKEN']}.")
 
     model_name = BASE_MODELS[base]
     print(f"Syncing base model {model_name} to volume.")
@@ -100,6 +125,11 @@ def main(
             "peft_method": "lora",
             "lora_config.r": 8,
             "lora_config.lora_alpha": 16,
+
+            "use_2d": False,
+            "ignore_pos_embeds": True,
+
+            "label_names": ["coords"],
         }
     )
 
