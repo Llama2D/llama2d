@@ -1,6 +1,5 @@
-from modal import gpu, Mount, Secret
-
-from common import stub, N_GPUS, GPU_MEM, BASE_MODELS, VOLUME_CONFIG
+from common import BASE_MODELS, GPU_MEM, N_GPUS, VOLUME_CONFIG, stub
+from modal import Mount, gpu
 
 import sys
 import os
@@ -21,6 +20,7 @@ def download(model_name: str):
     from huggingface_hub.hf_api import HfFolder; HfFolder.save_token(os.environ['HUGGINGFACE_TOKEN'])
 
     from huggingface_hub import snapshot_download
+
     from transformers.utils import move_cache
 
     try:
@@ -61,7 +61,7 @@ def library_entrypoint(config):
     timeout=3600 * 12,
 )
 def train(train_kwargs):
-    from torch.distributed.run import elastic_launch, parse_args, config_from_args
+    from torch.distributed.run import config_from_args, elastic_launch, parse_args
 
     torch_args = parse_args(["--nnodes", "1", "--nproc_per_node", str(N_GPUS), ""])
     print(f"{torch_args=}\n{train_kwargs=}")

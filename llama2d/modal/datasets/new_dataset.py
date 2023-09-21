@@ -1,10 +1,7 @@
-import os
-print(os.getcwd())
-
-from llama2d.datasets.pretraining import Llama2dPretrainingDataset
-from llama2d.datasets.pretraining_urls import urls
-
 from llama_recipes.datasets.utils import Concatenator
+
+from llama2d.llama2d.datasets.pretraining import Llama2dPretrainingDataset
+from llama2d.llama2d.datasets.pretraining_urls import urls
 
 
 def format_text(row, tokenizer):
