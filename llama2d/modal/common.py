@@ -32,7 +32,7 @@ image = (
     .pip_install("huggingface_hub==0.17.1", "hf-transfer==0.1.3", "scipy")
     .pip_install("gdown","google-cloud-vision","sentencepiece","playwright")
     # .run_commands("playwright install && playwright install-deps")
-    .pip_install("git+https://github.com/Llama2D/transformers.git@9a0e9988341fc9e56ab17a5c54afbc2e6c1b0fa1")
+    .pip_install("transformers")
     # copy from cuda*.so to cpu.so
     .pip_install(
         f"llama-recipes @ git+https://github.com/Llama2D/llama-recipes.git@3747077fd0fac5369869fdf009a991b486e505d4",
@@ -43,7 +43,7 @@ image = (
     .env(dict(HUGGINGFACE_HUB_CACHE="/pretrained", HF_HUB_ENABLE_HF_TRANSFER="1"))
     .copy_local_dir(secrets_dir, "/root/secrets")
     .copy_local_dir(dataset_dir, "/root/")
-    # .copy_local_dir(data_dir, "/root/data")
+    .run_commands("pip install 'llama-recipes @ git+https://github.com/Llama2D/llama-recipes.git@64c814219588038936d6a4e2050feb4c89b87fea' --no-deps")
 )
 
 stub = Stub("llama-finetuning", image=image, secrets=[Secret.from_name("huggingface")])

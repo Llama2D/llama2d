@@ -23,8 +23,6 @@ def download(model_name: str):
     from huggingface_hub import snapshot_download
     from transformers.utils import move_cache
 
-    from llama_recipes.finetuning import is_llama2d_enabled
-
     try:
         snapshot_download(model_name, local_files_only=True)
         print(f"Volume contains {model_name}.")
@@ -41,11 +39,17 @@ def library_entrypoint(config):
     assert 'HUGGINGFACE_TOKEN' in os.environ, 'Please set the HUGGINGFACE_TOKEN environment variable.'
     from huggingface_hub.hf_api import HfFolder; HfFolder.save_token(os.environ['HUGGINGFACE_TOKEN'])
 
-    from llama_recipes.finetuning import main,is_llama2d_enabled
-    print("Is llama2d enabled?", is_llama2d_enabled)
+    from llama_recipes.finetuning import main
     print(config)
 
-    main(**config)
+    from transformers import LlamaForCausalLM
+    from llama2d.model.modeling_llama import Llama2DForCausalLM
+    from llama2d.model.configuration_llama import Llama2DConfig
+
+    Llama = Llama2DForCausalLM
+    LlamaConfig = Llama2DConfig
+
+    main(Llama,LlamaConfig,**config)
 
 
 @stub.function(
@@ -129,6 +133,7 @@ def main(
             "use_2d": False,
             "ignore_pos_embeds": True,
 
+            # make peft hopefully make coords tunable
             "label_names": ["coords"],
         }
     )
