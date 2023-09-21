@@ -38,7 +38,7 @@ from transformers.models.llama.modeling_llama import (
     LlamaRotaryEmbedding,
     LlamaMLP,
     repeat_kv,
-    LlamaAttention,
+    LlamaModel,
 )
 
 from .sam_embed import PositionEmbeddingRandom
@@ -96,11 +96,12 @@ class Llama2DAttention(nn.Module):
         self.o_proj = nn.Linear(self.num_heads * self.head_dim, self.hidden_size, bias=False)
         self._init_rope()
 
-
-        self.lbd = LambdaGate(torch_dtype=config.torch_dtype)
-
         self.use_2d = config.use_2d
         self.pin_lbd = config.pin_lbd
+
+        if self.use_2d:
+            self.lbd = LambdaGate(torch_dtype=config.torch_dtype)
+
 
 
     def _init_rope(self):
@@ -430,7 +431,9 @@ class Llama2DModel(Llama2DPreTrainedModel):
         self.embed_tokens = nn.Embedding(config.vocab_size, config.hidden_size, self.padding_idx)
 
         num_pos_feats = config.hidden_size // config.num_key_value_heads
-        self.embedder = PositionEmbeddingRandom(num_pos_feats=num_pos_feats//2,scale=None,pin_lbd=config.pin_lbd,torch_dtype=config.torch_dtype)
+
+        if config.use_2d:
+            self.embedder = PositionEmbeddingRandom(num_pos_feats=num_pos_feats//2,scale=None,pin_lbd=config.pin_lbd,torch_dtype=config.torch_dtype)
 
         self.layers = nn.ModuleList([Llama2DDecoderLayer(config) for _ in range(config.num_hidden_layers)])
         self.norm = LlamaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
@@ -610,7 +613,9 @@ class Llama2DForCausalLM(Llama2DPreTrainedModel):
 
     def __init__(self, config):
         super().__init__(config)
-        self.model = Llama2DModel(config)
+
+        nxt = Llama2DModel if config.use_2d else LlamaModel
+        self.model = nxt(config)
         self.vocab_size = config.vocab_size
         self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
 
@@ -684,6 +689,9 @@ class Llama2DForCausalLM(Llama2DPreTrainedModel):
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         # decoder outputs consists of (dec_features, layer_state, dec_hidden, dec_attn)
+
+        last_kwargs = {"coords":coords} if self.config.use_2d else {}
+
         outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
@@ -694,7 +702,7 @@ class Llama2DForCausalLM(Llama2DPreTrainedModel):
             output_attentions=output_attentions,
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
-            coords=coords,
+            **last_kwargs,
         )
 
         hidden_states = outputs[0]

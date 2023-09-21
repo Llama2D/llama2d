@@ -43,7 +43,7 @@ image = (
     .env(dict(HUGGINGFACE_HUB_CACHE="/pretrained", HF_HUB_ENABLE_HF_TRANSFER="1"))
     .copy_local_dir(secrets_dir, "/root/secrets")
     .copy_local_dir(dataset_dir, "/root/")
-    .run_commands("pip install 'llama-recipes @ git+https://github.com/Llama2D/llama-recipes.git@64c814219588038936d6a4e2050feb4c89b87fea' --no-deps")
+    .run_commands("pip install 'llama-recipes @ git+https://github.com/Llama2D/llama-recipes.git@41dc5f914fc120b27a34031714e5e3e8b152953a' --no-deps")
 )
 
 stub = Stub("llama-finetuning", image=image, secrets=[Secret.from_name("huggingface")])

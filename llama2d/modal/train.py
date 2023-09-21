@@ -1,5 +1,5 @@
 from common import BASE_MODELS, GPU_MEM, N_GPUS, VOLUME_CONFIG, stub
-from modal import Mount, gpu
+from modal import Mount, gpu, Secret
 
 import sys
 import os
