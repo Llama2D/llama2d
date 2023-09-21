@@ -49,8 +49,7 @@ def save_inputs_from_task(
 
             action_dir = MIND2WEB_OUT_DIR / uid
 
-            # make the directory if it doesn't exist
-            os.makedirs(action_dir, exist_ok=True)
+            
 
             mhtml_file = uid_to_mhtml[uid]
 
@@ -69,6 +68,9 @@ def save_inputs_from_task(
                 continue
             gt_tag = add_tags_to_webpage(page, action)
 
+            # make the directory if it doesn't exist
+            os.makedirs(action_dir, exist_ok=True)
+            
             screenshot_path = action_dir / "screenshot.png"
 
             # we set url=None because we have already gone to the url
@@ -113,7 +115,9 @@ def save_inputs_from_task(
 
 def load_all_tasks():
     print(f"Loading data from {MIND2WEB_IN_DIR}...")
-    subprocess.run(["rm", "-rf", f"{MIND2WEB_OUT_DIR}/*"])
+    
+    # remove all files in the output directory
+    subprocess.run(["rm", "-rf", MIND2WEB_OUT_DIR])
 
     dataset = load_dataset("osunlp/Mind2Web")
     print("Done loading data!")
