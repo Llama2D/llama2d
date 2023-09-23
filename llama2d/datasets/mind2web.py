@@ -7,11 +7,11 @@ import torch
 from datasets import load_dataset
 from playwright.sync_api import sync_playwright
 from tqdm import tqdm
-from llama2d.vision.take_screenshot import take_screenshot
+from ..vision.take_screenshot import take_screenshot
 
-from llama2d.vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
+from ..vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
 
-from ..constants import MIND2WEB_IN_DIR, MIND2WEB_MHTML_DIR, MIND2WEB_OUT_DIR
+from ..constants import MIND2WEB_MHTML_DIR, MIND2WEB_OUT_DIR
 from ..tagging.add_tags_to_page import add_tags_to_webpage
 
 
@@ -51,7 +51,10 @@ def save_inputs_from_task(
 
             
 
-            mhtml_file = uid_to_mhtml[uid]
+            mhtml_file = uid_to_mhtml.get(uid)
+            if not mhtml_file:
+                print("Sample", uid, "not found! Skipping...")
+                continue
 
             pos_candidates = action["pos_candidates"]
             assert (
@@ -77,7 +80,7 @@ def save_inputs_from_task(
             take_screenshot(page, None, screenshot_path)
 
             prompt = f"""
-    You are a real estate agent using a website. Your goal is: "{intention}"
+    You are using a website. Your goal is: "{intention}"
     The website looks like so:"""
 
             operation = action["operation"]
@@ -114,8 +117,6 @@ def save_inputs_from_task(
 
 
 def load_all_tasks():
-    print(f"Loading data from {MIND2WEB_IN_DIR}...")
-    
     # remove all files in the output directory
     subprocess.run(["rm", "-rf", MIND2WEB_OUT_DIR])
 

@@ -365,3 +365,6 @@ $RECYCLE.BIN/
 
 
 # End of https://www.toptal.com/developers/gitignore/api/python,venv,virtualenv,dotenv,visualstudiocode,pycharm+all,windows,macos
+/llama2d/secrets/
+/scratchpad.py
+/opt/

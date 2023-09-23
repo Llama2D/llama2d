@@ -22,6 +22,7 @@ def add_tags_to_webpage(page, mind2web_action) -> int:
     curr_dir = os.path.dirname(os.path.realpath(__file__))
     with open(f"{curr_dir}/tagUtils.js", "r") as f:
         page.evaluate(f.read())
+    # breakpoint()
 
     gt_tag_id = page.evaluate(f"tagifyWebpage({json.dumps(cls)},{json.dumps(tag_id)})")
     return int(gt_tag_id)

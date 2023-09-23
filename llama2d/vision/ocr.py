@@ -35,7 +35,7 @@ class ImageAnnotator(object):
                 credentials
             )
         except Exception as e:
-            raise ValueError("OCR Object creation FAILED!\n\n@@@HINT: did you get secrets/google-vision.json from the slack channel?")
+            raise ValueError("OCR Object creation FAILED!\n\n@@@HINT: did you get secrets/gcp-vision.json from the slack channel?")
 
         self.__features = [vision.Feature(type_=vision.Feature.Type.TEXT_DETECTION)]
 
