@@ -36,11 +36,13 @@ def download(model_name: str):
 
 
 def library_entrypoint(config):
+    import os
+    print(os.getcwd(),os.listdir())
     assert 'HUGGINGFACE_TOKEN' in os.environ, 'Please set the HUGGINGFACE_TOKEN environment variable.'
     from huggingface_hub.hf_api import HfFolder; HfFolder.save_token(os.environ['HUGGINGFACE_TOKEN'])
 
-    from finetuning import main
     print(config)
+    from finetuning import main
 
     from transformers import LlamaForCausalLM, LlamaConfig
     # from llama2d.model.modeling_llama import Llama2DForCausalLM

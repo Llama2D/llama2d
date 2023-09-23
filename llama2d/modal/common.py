@@ -40,12 +40,13 @@ image = (
         extra_index_url="https://download.pytorch.org/whl/nightly/cu118",
         pre=True,
     )
+    .run_commands("pip install 'llama-recipes @ git+https://github.com/llama2d/llama-recipes.git@andrew-dev' --no-deps")
     # .run_commands("cp /opt/conda/lib/python3.9/site-packages/bitsandbytes/libbitsandbytes_cuda*.so /opt/conda/lib/python3.9/site-packages/bitsandbytes/libbitsandbytes_cpu.so")
     .env(dict(HUGGINGFACE_HUB_CACHE="/pretrained", HF_HUB_ENABLE_HF_TRANSFER="1"))
     .copy_local_dir(secrets_dir, "/root/secrets")
+    .copy_local_file(f"{os.path.dirname(os.path.realpath(__file__))}/finetuning.py", "/root/finetuning.py")
     # .run_commands("pip install 'llama-recipes @ git+https://github.com/Llama2D/llama-recipes.git@7e2153520aaa8d20a64bbcd510aedde6af3b281f' --no-deps")
     # .copy_local_file("flat_param.py","/opt/conda/lib/python3.9/site-packages/torch/distributed/fsdp/flat_param.py")
-    .run_commands("pip install 'llama-recipes @ git+https://github.com/llama2d/llama-recipes.git@andrew-dev' --no-deps")
 )
 
 stub = Stub("llama-finetuning", image=image, secrets=[Secret.from_name("huggingface")])
