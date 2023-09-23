@@ -11,4 +11,4 @@ def get_custom_dataset(dataset_config, tokenizer, split):
     import os
     os.system("unzip -qo cached-pretrain.zip")
 
-    return CachedDataset("cached-pretrain",use_2d=use_2d)
+    return CachedDataset("cached-pretrain",use_2d=use_2d,keep_fraction=dataset_config.keep_fraction)

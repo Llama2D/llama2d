@@ -142,6 +142,8 @@ def main(
 
             # make peft hopefully make coords tunable
             "label_names": ["coords"],
+
+            "keep_fraction": 0.1
         }
     )
 

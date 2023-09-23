@@ -20,6 +20,9 @@ secrets_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../secrets/"
 data_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../data/"
 dataset_dir = f"{os.path.dirname(os.path.realpath(__file__))}/datasets/"
 
+fresh_build = True
+import random
+
 image = (
     Image.micromamba()
     .micromamba_install(
@@ -32,15 +35,14 @@ image = (
     .pip_install("huggingface_hub==0.17.1", "hf-transfer==0.1.3", "scipy")
     .pip_install("gdown","google-cloud-vision","sentencepiece","playwright")
     # .run_commands("playwright install && playwright install-deps")
-    # .pip_install("transformers")
-    .pip_install("git+https://github.com/llama2d/transformers.git@22d874b4e633b97cfe2ae6736efc5f0e5120e061")
-    # copy from cuda*.so to cpu.so
+    .pip_install("transformers")
     .pip_install(
         f"llama-recipes @ git+https://github.com/modal-labs/llama-recipes.git",
         extra_index_url="https://download.pytorch.org/whl/nightly/cu118",
         pre=True,
     )
-    .run_commands("pip install 'llama-recipes @ git+https://github.com/llama2d/llama-recipes.git@andrew-dev' --no-deps")
+    .run_commands(f"echo {random.random()}" if fresh_build else "echo 0.0")
+    .run_commands("pip install 'llama-recipes @ git+https://github.com/llama2d/llama-recipes.git@andrew-dev' git+https://github.com/llama2d/transformers.git@overwriting-llama --no-deps")
     # .run_commands("cp /opt/conda/lib/python3.9/site-packages/bitsandbytes/libbitsandbytes_cuda*.so /opt/conda/lib/python3.9/site-packages/bitsandbytes/libbitsandbytes_cpu.so")
     .env(dict(HUGGINGFACE_HUB_CACHE="/pretrained", HF_HUB_ENABLE_HF_TRANSFER="1"))
     .copy_local_dir(secrets_dir, "/root/secrets")

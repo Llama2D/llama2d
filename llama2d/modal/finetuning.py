@@ -301,6 +301,7 @@ def main(Llama,LlamaCfg,**kwargs):
     # print lambda values
     print("-----Lambda gating values-------")
     for k, v in model.named_parameters():
+        print(k,v.data.shape)
         if k.endswith(".lbd"):
             print(k,v.data)
     print("--------------------------------")
