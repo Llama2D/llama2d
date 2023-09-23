@@ -39,7 +39,7 @@ def library_entrypoint(config):
     assert 'HUGGINGFACE_TOKEN' in os.environ, 'Please set the HUGGINGFACE_TOKEN environment variable.'
     from huggingface_hub.hf_api import HfFolder; HfFolder.save_token(os.environ['HUGGINGFACE_TOKEN'])
 
-    from llama_recipes.finetuning import main
+    from finetuning import main
     print(config)
 
     from transformers import LlamaForCausalLM, LlamaConfig
@@ -84,7 +84,10 @@ def main(
     base: str = "base7",
     run_id: str = "",
     num_epochs: int = 10,
-    batch_size: int = 8,
+    batch_size: int = 16,
+    use_2d: bool = True,
+    ignore_pos_embeds: bool = False,
+    peft: bool = True,
 ):
     import os
     print(f"Welcome to Modal Llama fine-tuning.")
@@ -111,7 +114,7 @@ def main(
             "model_name": BASE_MODELS[base],
             "output_dir": f"/results/{run_id}",
             "batch_size_training": batch_size,
-            "lr": 3e-4,
+            "lr": 3e-5,
             "num_epochs": num_epochs,
             "val_batch_size": 1,
             # --- Dataset options ---
@@ -127,13 +130,13 @@ def main(
             "fsdp_config.fsdp_cpu_offload": True,
             "fsdp_peft_cpu_offload_for_save": True,  # Experimental
             # --- PEFT options ---
-            "use_peft": True,
+            "use_peft": peft,
             "peft_method": "lora",
             "lora_config.r": 8,
             "lora_config.lora_alpha": 16,
 
-            "use_2d": True,
-            "ignore_pos_embeds": False,
+            "use_2d": use_2d,
+            "ignore_pos_embeds": ignore_pos_embeds,
 
             # make peft hopefully make coords tunable
             "label_names": ["coords"],
