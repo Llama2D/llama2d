@@ -11,7 +11,7 @@ from llama2d.vision.take_screenshot import take_screenshot
 
 from llama2d.vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
 
-from ..constants import MIND2WEB_IN_DIR, MIND2WEB_MHTML_DIR, MIND2WEB_OUT_DIR
+from ..constants import MIND2WEB_IN_DIR, MIND2WEB_MHTML_DIR, MIND2WEB_OUT_DIR, SCREEN_RESOLUTION
 from ..tagging.add_tags_to_page import add_tags_to_webpage
 
 
@@ -66,7 +66,12 @@ def save_inputs_from_task(
                 print(f"Error going to {mhtml_file}!")
                 print(e)
                 continue
-            gt_tag = add_tags_to_webpage(page, action)
+            gt_tag,tags_and_boxes = add_tags_to_webpage(page, action)
+            print(f"len(tags_and_boxes) = {len(tags_and_boxes)}")
+            # count # of tags and boxes with y < height
+            print(f"len([i for i in tags_and_boxes if i.coords[1] < 1080]) = {len([i for i in tags_and_boxes if i.coords[1] < 1080])}")
+
+            # print(tags_and_boxes)
 
             # make the directory if it doesn't exist
             os.makedirs(action_dir, exist_ok=True)
@@ -94,7 +99,7 @@ def save_inputs_from_task(
             else:
                 raise NotImplementedError(f"Don't understand operation {op}")
 
-            llama_train_input = extractor.process(prompt, screenshot_path, completion)
+            llama_train_input = extractor.process(prompt, screenshot_path, completion,tags_and_boxes=tags_and_boxes)
 
             torch.save(llama_train_input, action_dir / "input.pt")
 
@@ -106,8 +111,12 @@ def save_inputs_from_task(
                 json.dump(json_vals, f)
 
     except Exception as e:
+        print(f"URL: {mhtml_file}")
         print("Error processing task!")
         print(e)
+        with open("task.json", "w") as f:
+            json.dump(task, f)
+        # import pdb; pdb.set_trace()
         return
 
     print("Successfully processed task!")
@@ -131,7 +140,7 @@ def load_all_tasks():
 
     with sync_playwright() as p:
         # Using the Chromium browser but you can also use 'firefox' or 'webkit'
-        browser = p.chromium.launch()
+        browser = p.chromium.launch(headless=False)
         page = browser.new_page()
 
         page.set_extra_http_headers(
@@ -141,6 +150,9 @@ def load_all_tasks():
                 "Safari/537.36"
             }
         )
+
+        width, height = SCREEN_RESOLUTION
+        page.set_viewport_size({"width": width, "height": height})
 
         for task in tqdm(train):
             save_inputs_from_task(page, task, extractor, uid_to_mhtml)

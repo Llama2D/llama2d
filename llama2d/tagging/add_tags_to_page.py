@@ -1,8 +1,15 @@
 import json
 import os
 
+from dataclasses import dataclass
+from typing import Tuple, List
 
-def add_tags_to_webpage(page, mind2web_action) -> int:
+@dataclass
+class TagAndBox:
+    word: str
+    coords: Tuple[int,int]
+
+def add_tags_to_webpage(page, mind2web_action) -> Tuple[int,List[TagAndBox]]:
     """
     Add visual tags to a webpage, and find the tag # of the desired Mind2Web action.
     A visual tag looks like [12] and is put next to buttons, textboxes, links, etc.
@@ -16,15 +23,22 @@ def add_tags_to_webpage(page, mind2web_action) -> int:
 
     cls = attrs.get("class", None)
     tag_id = attrs.get("id", None)
+    bbox_rect = [float(i) for i in attrs["bounding_box_rect"].split(",")]
 
-    print(f"Looking for element with class {cls} and id {tag_id}")
+    print(f"Looking for element with class {cls} and id {tag_id} and bbox {bbox_rect}")
+    print()
 
     curr_dir = os.path.dirname(os.path.realpath(__file__))
     with open(f"{curr_dir}/tagUtils.js", "r") as f:
         page.evaluate(f.read())
 
-    gt_tag_id = page.evaluate(f"tagifyWebpage({json.dumps(cls)},{json.dumps(tag_id)})")
-    return int(gt_tag_id)
+    to_eval = f"tagifyWebpage({json.dumps(cls)},{json.dumps(tag_id)},{json.dumps(bbox_rect)})"
+    print(f"{to_eval}")
+    gt_tag_id,el_tags = page.evaluate(to_eval)
+
+    assert type(gt_tag_id) == int, f"gt_tag_id is {json.dumps(gt_tag_id)}!"
+
+    return gt_tag_id,[TagAndBox(**i) for i in el_tags]
 
 
 if __name__ == "__main__":

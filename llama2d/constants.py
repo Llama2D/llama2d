@@ -3,7 +3,7 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).parent.parent.resolve()
 
 # 3 times the resolution of a 1080p monitor
-SCREEN_RESOLUTION = (1920, 1080 * 3)
+SCREEN_RESOLUTION = (1280, 1080 * 1)
 
 DATA_DIR = ROOT_DIR / "data"
 
@@ -25,3 +25,5 @@ MAX_PAGE_LEN = 1000
 # we will truncate big inputs to this number
 # we will also pad small inputs to this number
 MAX_SEQ_LEN = 1500
+
+MAX_TAGS_LEN = 75

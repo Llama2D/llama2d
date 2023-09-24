@@ -116,7 +116,10 @@ def main(
             "model_name": BASE_MODELS[base],
             "output_dir": f"/results/{run_id}",
             "batch_size_training": batch_size,
+
             "lr": 3e-5,
+            "lambda_lr": 3e-4,
+
             "num_epochs": num_epochs,
             "val_batch_size": 1,
             # --- Dataset options ---
@@ -143,7 +146,7 @@ def main(
             # make peft hopefully make coords tunable
             "label_names": ["coords"],
 
-            "keep_fraction": 0.1
+            "keep_fraction": 1.0
         }
     )
 

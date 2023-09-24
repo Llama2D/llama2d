@@ -10,10 +10,12 @@ import torch
 
 from transformers import LlamaTokenizer
 
-from ..constants import MAX_PAGE_LEN, MAX_SEQ_LEN
+from ..constants import MAX_PAGE_LEN, MAX_SEQ_LEN, MAX_TAGS_LEN, SCREEN_RESOLUTION
 from .ocr import ImageAnnotator
 from .take_screenshot import extract_domain, take_screenshot
 
+from ..tagging.add_tags_to_page import TagAndBox
+from typing import Optional, List
 
 class Llama2dWebsiteFeatureExtractor(object):
     def __init__(
@@ -32,7 +34,7 @@ class Llama2dWebsiteFeatureExtractor(object):
         self.__label_mask_id = label_mask_id
         self.__mask_out_body = mask_out_body
 
-    def process(self, prompt, page, output):
+    def process(self, prompt, page, output, tags_and_boxes:Optional[List[TagAndBox]]=None):
         # run OCR
         annotations = self.__annotator(page)
 
@@ -53,6 +55,27 @@ class Llama2dWebsiteFeatureExtractor(object):
         image_tokens = image_tokens[:MAX_PAGE_LEN]
         image_token_locs = image_token_locs[:MAX_PAGE_LEN]
 
+        if tags_and_boxes is None:
+            tag_tokens = []
+            tag_token_locs = []
+            # TODO add embeddings for tags
+        else:
+            tag_tokens = [self.tokenizer.tokenize(i.word) for i in tags_and_boxes]
+            tag_token_locs = [ [e.coords]*len(i) for i,e in zip(tag_tokens,tags_and_boxes) ]
+            # Normalize locs
+            width,height = SCREEN_RESOLUTION
+            tag_token_locs = [
+                [
+                    (coords[0]/width,coords[1]/height)
+                    for coords in tag_token_locs
+                ]
+                for tag_token_locs in tag_token_locs
+            ]
+
+            # truncate
+            tag_tokens = tag_tokens[:MAX_TAGS_LEN]
+            tag_token_locs = tag_token_locs[:MAX_TAGS_LEN]
+
         # extract tokens from the prompt
         prompt_tokens = self.tokenizer.tokenize(prompt)
         # and use (-1,-1) for the 2d embeddings for the prompt
@@ -65,6 +88,10 @@ class Llama2dWebsiteFeatureExtractor(object):
             + [self.__separator_id]
             + self.tokenizer.convert_tokens_to_ids(  # seperating prompt with context
                 [j for i in image_tokens for j in i]
+            )
+            + [self.__separator_id]
+            + self.tokenizer.convert_tokens_to_ids(  # seperating context with tags
+                [j for i in tag_tokens for j in i]
             )
             + [self.__separator_id]
             + self.tokenizer.convert_tokens_to_ids(  # seperating context with answer
@@ -84,6 +111,10 @@ class Llama2dWebsiteFeatureExtractor(object):
                 )
             ]
             + [-100]
+            + [  # seperating context with tags
+                -100 for _ in range(len(tag_tokens))
+            ]
+            + [-100]
             + self.tokenizer.convert_tokens_to_ids(  # seperating context with answer
                 output_tokens
             )
@@ -95,6 +126,8 @@ class Llama2dWebsiteFeatureExtractor(object):
             + prompt_tokens_locs  # bos token
             + [(-1, -1)]
             + [j for i in image_token_locs for j in i]  # for the separator
+            + [(-1, -1)]
+            + [j for i in tag_token_locs for j in i]  # for the separator
             + [(-1, -1)]
             + output_tokens_locs  # for the separator
         )

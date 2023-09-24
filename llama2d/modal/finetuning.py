@@ -175,8 +175,15 @@ def main(Llama,LlamaCfg,**kwargs):
             for k, v in model.named_parameters():
                 if k.endswith(".lbd"):
                     v.requires_grad = v.data.requires_grad = True
-                    print(k,"requires_grad=",v.requires_grad,v.data.dtype)
+                    print(k,"requires_grad=",v.requires_grad,v.data)
                 
+    if ignore_pos_embeds:
+        print(f"--------IGNORE POS EMBEDS IS TRUE--------")
+        # make all .lbd parameters untrainable
+        for k, v in model.named_parameters():
+            if k.endswith(".lbd"):
+                v.requires_grad = v.data.requires_grad = False
+                print(k,"requires_grad=",v.requires_grad,v.data)
 
     #setting up FSDP if enable_fsdp is enabled
     if train_config.enable_fsdp:
@@ -264,6 +271,18 @@ def main(Llama,LlamaCfg,**kwargs):
         )
 
     # Initialize the optimizer and learning rate scheduler
+
+    named_params = list(model.named_parameters())
+    params = [
+        {
+            "params": [param for name, param in named_params if ".lbd" not in name],
+        },
+        {
+            "params": [param for name, param in named_params if ".lbd" in name],
+            "lr": train_config.lambda_lr,
+        }
+    ]
+
     if fsdp_config.pure_bf16 and fsdp_config.optimizer == "anyprecision":
         optimizer = AnyPrecisionAdamW(
             model.parameters(),
@@ -281,30 +300,42 @@ def main(Llama,LlamaCfg,**kwargs):
         )
     scheduler = StepLR(optimizer, step_size=1, gamma=train_config.gamma)
 
-    # Start the training process
-    results = train(
-        model,
-        train_dataloader,
-        eval_dataloader,
-        tokenizer,
-        optimizer,
-        scheduler,
-        train_config.gradient_accumulation_steps,
-        train_config,
-        fsdp_config if train_config.enable_fsdp else None,
-        local_rank if train_config.enable_fsdp else None,
-        rank if train_config.enable_fsdp else None,
-    )
-    if not train_config.enable_fsdp or rank==0:
-        [print(f'Key: {k}, Value: {v}') for k, v in results.items()]
-    
+    if train_config.num_epochs > 0:
+        # Start the training process
+        results = train(
+            model,
+            train_dataloader,
+            eval_dataloader,
+            tokenizer,
+            optimizer,
+            scheduler,
+            train_config.gradient_accumulation_steps,
+            train_config,
+            fsdp_config if train_config.enable_fsdp else None,
+            local_rank if train_config.enable_fsdp else None,
+            rank if train_config.enable_fsdp else None,
+        )
+        if not train_config.enable_fsdp or rank==0:
+            [print(f'Key: {k}, Value: {v}') for k, v in results.items()]
+    else:
+        print("Skipping training")
+        
     # print lambda values
     print("-----Lambda gating values-------")
-    for k, v in model.named_parameters():
-        print(k,v.data.shape)
-        if k.endswith(".lbd"):
-            print(k,v.data)
+    with FSDP.summon_full_params(
+            model,
+            rank0_only=True,
+            writeback=False,
+            with_grads=False
+        ):
+        print("-----full-params Lambda gating values-------")
+        for k, v in model.named_parameters():
+            if k.endswith(".lbd"):
+                print(k,v.data)
     print("--------------------------------")
+
+    # print(raw_state_dict_keys)
+    # print(full_params_state_dict_keys)
 
 if __name__ == "__main__":
     fire.Fire(main)

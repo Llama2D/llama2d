@@ -9,7 +9,6 @@ def save_dataset(dataset, save_dir):
     for i in range(len(dataset)):
         torch.save(dataset[i], f"{save_dir}/{i}.pt")
 
-
 class CachedDataset(torch.utils.data.Dataset):
     def __init__(self, load_dir, use_2d=True,keep_fraction=1.0):
         self.load_dir = load_dir
