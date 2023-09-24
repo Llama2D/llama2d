@@ -36,6 +36,7 @@ image = (
     .pip_install("gdown","google-cloud-vision","sentencepiece","playwright")
     # .run_commands("playwright install && playwright install-deps")
     .pip_install("transformers")
+    .pip_install("wandb")
     .pip_install(
         f"llama-recipes @ git+https://github.com/modal-labs/llama-recipes.git",
         extra_index_url="https://download.pytorch.org/whl/nightly/cu118",
@@ -51,7 +52,7 @@ image = (
     # .copy_local_file("flat_param.py","/opt/conda/lib/python3.9/site-packages/torch/distributed/fsdp/flat_param.py")
 )
 
-stub = Stub("llama-finetuning", image=image, secrets=[Secret.from_name("huggingface")])
+stub = Stub("llama-finetuning", image=image, secrets=[Secret.from_name("huggingface"), Secret.from_name("wandb")])
 
 # Download pre-trained models into this volume.
 stub.pretrained_volume = Volume.persisted("example-pretrained-vol")
