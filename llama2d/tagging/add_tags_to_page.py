@@ -15,26 +15,31 @@ def add_tags_to_webpage(page, mind2web_action) -> Tuple[int,List[TagAndBox]]:
     A visual tag looks like [12] and is put next to buttons, textboxes, links, etc.
     """
 
-    pos_candidates = mind2web_action["pos_candidates"]
+    attrss = [json.loads(pos_candidate["attributes"]) for pos_candidate in mind2web_action["pos_candidates"]]
 
-    assert len(pos_candidates) == 1, "Only one positive candidate is supported"
+    els = []
+    for attrs in attrss:
+        cls = attrs.get("class", None)
+        tag_id = attrs.get("id", None)
+        bbox_rect = [float(i) for i in attrs["bounding_box_rect"].split(",")]
+        els.append({
+            "cls":cls,
+            "tag_id":tag_id,
+            "bbox_rect":bbox_rect
+        })
 
-    attrs = json.loads(mind2web_action["pos_candidates"][0]["attributes"])
-
-    cls = attrs.get("class", None)
-    tag_id = attrs.get("id", None)
-    bbox_rect = [float(i) for i in attrs["bounding_box_rect"].split(",")]
-
-    print(f"Looking for element with class {cls} and id {tag_id} and bbox {bbox_rect}")
-    print()
+    # print(f"Looking for element with class {cls} and id {tag_id} and bbox {bbox_rect}")
+    # print()
 
     curr_dir = os.path.dirname(os.path.realpath(__file__))
     with open(f"{curr_dir}/tagUtils.js", "r") as f:
         page.evaluate(f.read())
 
-    to_eval = f"tagifyWebpage({json.dumps(cls)},{json.dumps(tag_id)},{json.dumps(bbox_rect)})"
-    print(f"{to_eval}")
-    gt_tag_id,el_tags = page.evaluate(to_eval)
+    try:
+        to_eval = f"tagifyWebpage({json.dumps(els)})"
+        gt_tag_id,el_tags = page.evaluate(to_eval)
+    except Exception as e:
+        raise Exception(f"Error evaluating:\n{to_eval}\n{e}")
 
     assert type(gt_tag_id) == int, f"gt_tag_id is {json.dumps(gt_tag_id)}!"
 

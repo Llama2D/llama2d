@@ -11,7 +11,7 @@ from llama2d.vision.take_screenshot import take_screenshot
 
 from llama2d.vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
 
-from ..constants import MIND2WEB_IN_DIR, MIND2WEB_MHTML_DIR, MIND2WEB_OUT_DIR, SCREEN_RESOLUTION
+from ..constants import MIND2WEB_IN_DIR, MIND2WEB_MHTML_DIR, MIND2WEB_OUT_DIR, MIND2WEB_VIZ_DIR, SCREEN_RESOLUTION
 from ..tagging.add_tags_to_page import add_tags_to_webpage
 
 
@@ -34,6 +34,7 @@ def get_uid_to_mhtml_map() -> Dict[str, str]:
     ]
     return {get_uid(path): path for path in all_mhtmls}
 
+import shutil
 
 def save_inputs_from_task(
     page,
@@ -41,10 +42,23 @@ def save_inputs_from_task(
     extractor: Llama2dWebsiteFeatureExtractor,
     uid_to_mhtml: Dict[str, str],
 ) -> List[Tuple[str, str, str]]:
+
+    with open("task.json", "w") as f:
+        json.dump(task, f)
+
     intention = task["confirmed_task"]
 
     try:
-        for action in task["actions"]:
+
+        intention_alpha = "".join([i for i in intention if i.isalpha()])
+        task_dir = f"{MIND2WEB_VIZ_DIR}/{intention_alpha}"
+        if os.path.exists(task_dir):
+            shutil.rmtree(task_dir)
+        os.mkdir(task_dir)
+
+        did_finish = False
+
+        for i,action in enumerate(task["actions"]):
             uid = action["action_uid"]
 
             action_dir = MIND2WEB_OUT_DIR / uid
@@ -54,9 +68,9 @@ def save_inputs_from_task(
             mhtml_file = uid_to_mhtml[uid]
 
             pos_candidates = action["pos_candidates"]
-            assert (
-                len(pos_candidates) == 1
-            ), f"Num of positive candidates is {len(pos_candidates)}!"
+            if len(pos_candidates) == 0:
+                print("WARNING: No positive candidates!")
+                continue
 
             mhtml_file = "file://" + mhtml_file
 
@@ -67,9 +81,9 @@ def save_inputs_from_task(
                 print(e)
                 continue
             gt_tag,tags_and_boxes = add_tags_to_webpage(page, action)
-            print(f"len(tags_and_boxes) = {len(tags_and_boxes)}")
+            # print(f"len(tags_and_boxes) = {len(tags_and_boxes)}")
             # count # of tags and boxes with y < height
-            print(f"len([i for i in tags_and_boxes if i.coords[1] < 1080]) = {len([i for i in tags_and_boxes if i.coords[1] < 1080])}")
+            # print(f"len([i for i in tags_and_boxes if i.coords[1] < 1080]) = {len([i for i in tags_and_boxes if i.coords[1] < 1080])}")
 
             # print(tags_and_boxes)
 
@@ -80,6 +94,9 @@ def save_inputs_from_task(
 
             # we set url=None because we have already gone to the url
             take_screenshot(page, None, screenshot_path)
+
+            # cp screenshot_path to task_dir/i.png
+            subprocess.run(["cp", screenshot_path, f"{task_dir}/{i}.png"])
 
             prompt = f"""
     You are a real estate agent using a website. Your goal is: "{intention}"
@@ -109,6 +126,8 @@ def save_inputs_from_task(
             }
             with open(action_dir / "input.json", "w") as f:
                 json.dump(json_vals, f)
+        
+        did_finish = True
 
     except Exception as e:
         print(f"URL: {mhtml_file}")
@@ -117,10 +136,13 @@ def save_inputs_from_task(
         with open("task.json", "w") as f:
             json.dump(task, f)
         # import pdb; pdb.set_trace()
-        return
+        # return
 
-    print("Successfully processed task!")
-
+    if did_finish:
+        print("Successfully processed task!")
+    else:
+        print(f"Task failed - site {task['website']}, task {task['confirmed_task']}")
+        # import pdb; pdb.set_trace()
 
 def load_all_tasks():
     print(f"Loading data from {MIND2WEB_IN_DIR}...")

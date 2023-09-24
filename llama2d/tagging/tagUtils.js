@@ -19,7 +19,9 @@ const elIsClean = (el) => {
 const inputs = ['a', 'button', 'textarea', 'select', 'details', 'label']
 const _isInteractible = (el) => inputs.includes(el.tagName.toLowerCase()) ||
     (el.tagName.toLowerCase() === 'input' && el.type !== 'hidden') ||
-    el.role === 'button'
+    el.role === 'button' ||
+    el.computedStyleMap().get("cursor") == "pointer" && !(el.parentElement && el.parentElement.computedStyleMap().get("cursor") === "pointer")
+
 const isInteractible = (el) => _isInteractible(el) || el.parentElement && isInteractible(el.parentElement);
 
 const emptyTagWhitelist = ["input","textarea","select","button"]
@@ -39,7 +41,13 @@ const isEmpty = (el) => {
     return false
 }
 
-window.tagifyWebpage = (gtCls, gtId, gtBbox) =>{
+window.tagifyWebpageOneEl = (gtCls, gtId, gtBbox) => tagifyWebpage([{
+    cls: gtCls,
+    tag_id: gtId,
+    bbox_rect: gtBbox
+}])
+
+window.tagifyWebpage = (gtEls,useGt=true) =>{
 
     let numTagsSoFar = 0;
 
@@ -50,7 +58,9 @@ window.tagifyWebpage = (gtCls, gtId, gtBbox) =>{
     for(let el of document.body.querySelectorAll("*")){
 
         const stringifiedClasses = el.classList.toString();
-        const isGt = (gtCls===null || stringifiedClasses===gtCls) && (gtId===null || el.id === gtId);
+
+        const gtMatches = gtEls.filter(({cls,tag_id,bbox_rect})=>(cls===null || stringifiedClasses===cls) && (tag_id===null || el.id === tag_id));
+        const isGt = gtMatches.length > 0;
 
         const empty = isEmpty(el);
         const dirty = !elIsClean(el);
@@ -62,7 +72,7 @@ window.tagifyWebpage = (gtCls, gtId, gtBbox) =>{
         }
 
         if(empty || dirty || uninteractible){
-            console.log("Skipping!", el);
+            console.log("Skipping!", el,`empty: ${empty}, dirty: ${dirty}, uninteractible: ${uninteractible}`);
             continue;
         }
 
@@ -71,7 +81,8 @@ window.tagifyWebpage = (gtCls, gtId, gtBbox) =>{
             gtCandidates.push({
                 el,
                 tagId: numTagsSoFar,
-                stats:{empty, dirty, uninteractible}
+                stats:{empty, dirty, uninteractible},
+                gtEls: gtMatches
             });
         }
 
@@ -86,6 +97,8 @@ window.tagifyWebpage = (gtCls, gtId, gtBbox) =>{
 
         numTagsSoFar++;
     }
+
+    if(!useGt) return [null, elTags];
 
     const validGtCandidates = gtCandidates.filter(({el, stats}) => {
         const {empty, dirty, uninteractible} = stats
@@ -103,7 +116,7 @@ window.tagifyWebpage = (gtCls, gtId, gtBbox) =>{
         console.log("Multiple GTs found!")
     }
 
-    const elementDistances = validGtCandidates.map(({el}) => {
+    const elementDistancesDeep = validGtCandidates.map(({el,gtEls}) => gtEls.map(({bbox_rect})=>bbox_rect).map((gtBbox)=>{
         const rect = el.getBoundingClientRect()
         const [x,y,w,h] = gtBbox;
         const gtCenter = [x+w/2, y+h/2];
@@ -112,7 +125,9 @@ window.tagifyWebpage = (gtCls, gtId, gtBbox) =>{
         const dx = gtCenter[0] - elCenter[0];
         const dy = gtCenter[1] - elCenter[1];
         return Math.sqrt(dx*dx + dy*dy)
-    })
+    }))
+
+    const elementDistances = elementDistancesDeep.map((distances)=>Math.min(...distances));
 
     const closestDistance = Math.min(...elementDistances);
     const closestElement = validGtCandidates[elementDistances.indexOf(closestDistance)];
@@ -124,3 +139,16 @@ window.tagifyWebpage = (gtCls, gtId, gtBbox) =>{
     return [closestElement.tagId, elTags];
 }
 logElements=[]; // some elements where you can check your classification performance. useful for debugging.
+
+window.showTag = coords => {
+    myBox = document.createElement("div")
+    myBox.style.width = "10px";
+    myBox.style.height = "10px";
+    myBox.style.background = "red";
+    myBox.style.position = "absolute";
+    myBox.style.top = coords[1]-5+"px";
+    myBox.style.left = coords[0]-5+"px";
+    myBox.textContent = "";
+    myBox.style.zIndex = 2000
+    document.body.appendChild(myBox)
+}
