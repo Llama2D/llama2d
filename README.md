@@ -139,7 +139,7 @@ To train a model with Modal, you need to do the following:
 Change your directory to `llama2d/modal/` and run
 
 ```bash
-modal train --dataset <dataset_name> --model base7
+modal train --dataset <dataset_name>
 ```
 
 where `dataset_name` is the filename (minus `.py`) of a file in `llama2d/modal/datasets/`.

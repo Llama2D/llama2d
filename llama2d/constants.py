@@ -8,6 +8,8 @@ SCREEN_RESOLUTION = (1280, 1080 * 1)
 DATA_DIR = ROOT_DIR / "data"
 
 MIND2WEB_MHTML_DIR = DATA_DIR / "mind2web-mhtml"
+MIND2WEB_HHTML_DIR = DATA_DIR / "mind2web-hhtml"
+
 MIND2WEB_OUT_DIR = DATA_DIR / "mind2web-out"
 MIND2WEB_IN_DIR = DATA_DIR / "mind2web-in"
 MIND2WEB_VIZ_DIR = DATA_DIR / "mind2web-viz"

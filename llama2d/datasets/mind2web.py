@@ -20,13 +20,13 @@ def get_uid(path):
     return path.split("/")[-1].split("_")[0]
 
 
-def get_uid_to_mhtml_map() -> Dict[str, str]:
-    """Get a mapping from uid to mhtml file path.
+def get_uid_to_hhtml_map() -> Dict[str, str]:
+    """Get a mapping from uid to hhtml file path.
 
     Returns:
-        Dict[str, str]: A mapping from uid to mhtml file path.
+        Dict[str, str]: A mapping from uid to hhtml file path.
     """
-    # all files in the MIN2WEB_MHTML_DIR are mhtml files
+    # all files in the MIN2WEB_MHTML_DIR are hhtml files
     all_mhtmls = [
         os.path.join(MIND2WEB_MHTML_DIR, f)
         for f in os.listdir(MIND2WEB_MHTML_DIR)
@@ -36,11 +36,13 @@ def get_uid_to_mhtml_map() -> Dict[str, str]:
 
 import shutil
 
+should_debug = False
+
 def save_inputs_from_task(
     page,
     task: Dict,
     extractor: Llama2dWebsiteFeatureExtractor,
-    uid_to_mhtml: Dict[str, str],
+    uid_to_hhtml: Dict[str, str],
 ) -> List[Tuple[str, str, str]]:
 
     with open("task.json", "w") as f:
@@ -65,19 +67,19 @@ def save_inputs_from_task(
 
             
 
-            mhtml_file = uid_to_mhtml[uid]
+            hhtml_file = uid_to_hhtml[uid]
 
             pos_candidates = action["pos_candidates"]
             if len(pos_candidates) == 0:
                 print("WARNING: No positive candidates!")
                 continue
 
-            mhtml_file = "file://" + mhtml_file
+            hhtml_file = "file://" + hhtml_file
 
             try:
-                page.goto(mhtml_file)
+                page.goto(hhtml_file)
             except Exception as e:
-                print(f"Error going to {mhtml_file}!")
+                print(f"Error going to {hhtml_file}!")
                 print(e)
                 continue
             gt_tag,tags_and_boxes = add_tags_to_webpage(page, action)
@@ -130,12 +132,13 @@ def save_inputs_from_task(
         did_finish = True
 
     except Exception as e:
-        print(f"URL: {mhtml_file}")
+        print(f"URL: {hhtml_file}")
         print("Error processing task!")
         print(e)
         with open("task.json", "w") as f:
             json.dump(task, f)
-        # import pdb; pdb.set_trace()
+        if should_debug:
+            import pdb; pdb.set_trace()
         # return
 
     if did_finish:
@@ -158,7 +161,7 @@ def load_all_tasks():
         model_path="decapoda-research/llama-7b-hf"
     )
 
-    uid_to_mhtml = get_uid_to_mhtml_map()
+    uid_to_hhtml = get_uid_to_hhtml_map()
 
     with sync_playwright() as p:
         # Using the Chromium browser but you can also use 'firefox' or 'webkit'
@@ -177,7 +180,7 @@ def load_all_tasks():
         page.set_viewport_size({"width": width, "height": height})
 
         for task in tqdm(train):
-            save_inputs_from_task(page, task, extractor, uid_to_mhtml)
+            save_inputs_from_task(page, task, extractor, uid_to_hhtml)
 
     print(f"Done loading input training data! Data is saved in {MIND2WEB_OUT_DIR}.")
 

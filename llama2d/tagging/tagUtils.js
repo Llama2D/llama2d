@@ -24,7 +24,7 @@ const _isInteractible = (el) => inputs.includes(el.tagName.toLowerCase()) ||
 
 const isInteractible = (el) => _isInteractible(el) || el.parentElement && isInteractible(el.parentElement);
 
-const emptyTagWhitelist = ["input","textarea","select","button"]
+const emptyTagWhitelist = ["input","textarea","select","button","a"]
 const isEmpty = (el) => {
     const tagName = el.tagName.toLowerCase()
     if(emptyTagWhitelist.includes(tagName)) return false
@@ -47,13 +47,30 @@ window.tagifyWebpageOneEl = (gtCls, gtId, gtBbox) => tagifyWebpage([{
     bbox_rect: gtBbox
 }])
 
+const convertHoverToCls = () => {
+    [...document.styleSheets].forEach(sheet=>{
+        try{
+        [...sheet.cssRules].forEach(rule=>{
+            if(rule.selectorText) rule.selectorText = rule.selectorText.replace(/:hover/g,".mind2web-hover")
+        })
+        } catch(err){
+            if(!(err+"").includes("Cannot access rules")) throw err;
+        }
+    })
+}
+
 window.tagifyWebpage = (gtEls,useGt=true) =>{
+
+    convertHoverToCls();
 
     let numTagsSoFar = 0;
 
     let gtCandidates = [];
 
     let elTags = [];
+
+    const validEls = new Set();
+    const hasValidParent = el => validEls.has(el) || (el.parentElement && hasValidParent(el.parentElement));
 
     for(let el of document.body.querySelectorAll("*")){
 
@@ -62,17 +79,24 @@ window.tagifyWebpage = (gtEls,useGt=true) =>{
         const gtMatches = gtEls.filter(({cls,tag_id,bbox_rect})=>(cls===null || stringifiedClasses===cls) && (tag_id===null || el.id === tag_id));
         const isGt = gtMatches.length > 0;
 
+        el.classList.add("mind2web-hover")
+
         const empty = isEmpty(el);
         const dirty = !elIsClean(el);
         const uninteractible = !isInteractible(el);
+        const validParent = hasValidParent(el)
 
+        el.classList.remove("mind2web-hover")
 
         if(logElements.includes(el)) {
-            console.log(`Logging ${el.innerText}, ${empty},${dirty},${uninteractible}`)
+            console.log(`Logging ${el.innerText}, ${empty},${dirty},${uninteractible},${validParent}`)
         }
 
-        if(empty || dirty || uninteractible){
-            console.log("Skipping!", el,`empty: ${empty}, dirty: ${dirty}, uninteractible: ${uninteractible}`);
+        const isGood = !(empty || dirty || uninteractible) || validParent;
+        if(isGood) validEls.add(el);
+
+        if(!isGood){
+            if(isGt) console.log("Skipping!", el,`empty: ${empty}, dirty: ${dirty}, uninteractible: ${uninteractible}, validParent: ${validParent}`);
             continue;
         }
 
@@ -81,7 +105,7 @@ window.tagifyWebpage = (gtEls,useGt=true) =>{
             gtCandidates.push({
                 el,
                 tagId: numTagsSoFar,
-                stats:{empty, dirty, uninteractible},
+                stats:{empty, dirty, uninteractible, validParent},
                 gtEls: gtMatches
             });
         }
@@ -94,15 +118,19 @@ window.tagifyWebpage = (gtEls,useGt=true) =>{
             word:tagStr,
             coords:elCenter,
         })
+        validEls.add(el);
 
         numTagsSoFar++;
     }
+        console.log(validEls)
 
     if(!useGt) return [null, elTags];
 
+
+
     const validGtCandidates = gtCandidates.filter(({el, stats}) => {
-        const {empty, dirty, uninteractible} = stats
-        return !empty && !dirty && !uninteractible
+        const {empty, dirty, uninteractible, validParent} = stats
+        return !empty && !dirty && !uninteractible || validParent
     })
 
     if(validGtCandidates.length === 0){
@@ -136,19 +164,21 @@ window.tagifyWebpage = (gtEls,useGt=true) =>{
         throw new Error(`Closest element is ${closestDistance}px away! Bboxes are ${validGtCandidates.map(({el})=>el.getBoundingClientRect()).map(({left, top, width, height})=>[left, top, width, height])})}}`);
     }
 
+
     return [closestElement.tagId, elTags];
 }
 logElements=[]; // some elements where you can check your classification performance. useful for debugging.
 
-window.showTag = coords => {
-    myBox = document.createElement("div")
-    myBox.style.width = "10px";
-    myBox.style.height = "10px";
-    myBox.style.background = "red";
-    myBox.style.position = "absolute";
-    myBox.style.top = coords[1]-5+"px";
-    myBox.style.left = coords[0]-5+"px";
-    myBox.textContent = "";
-    myBox.style.zIndex = 2000
-    document.body.appendChild(myBox)
-}
+// window.showTag = coords => {
+//     myBox = document.createElement("div")
+//     myBox.style.width = "10px";
+//     myBox.style.height = "10px";
+//     myBox.style.background = "red";
+//     myBox.style.position = "absolute";
+//     myBox.style.top = coords[1]-5+"px";
+//     myBox.style.left = coords[0]-5+"px";
+//     myBox.textContent = "";
+//     myBox.style.zIndex = 2000
+//     document.body.appendChild(myBox)
+// }
+
