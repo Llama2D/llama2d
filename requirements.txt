@@ -3,5 +3,5 @@ torch==2.0.1
 sentencepiece==0.1.99
 Pillow==10.0.1
 playwright==1.37.0
-huggingface_hub
-'huggingface_hub[cli,torch]'
+huggingface_hub==0.17.2
+huggingface_hub[cli,torch]
