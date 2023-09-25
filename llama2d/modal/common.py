@@ -45,7 +45,7 @@ image = (
     .copy_local_file(f"{os.path.dirname(os.path.realpath(__file__))}/finetuning.py", "/root/finetuning.py")
 )
 
-stub = Stub("llama-finetuning", image=image, secrets=[Secret.from_name("huggingface"),Secret.from_name("wandb")])
+stub = Stub("llama-finetuning", image=image, secrets=[Secret.from_name("huggingface"), Secret.from_name("wandb")])
 
 # Download pre-trained models into this volume.
 stub.pretrained_volume = Volume.persisted("example-pretrained-vol")
