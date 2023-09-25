@@ -146,7 +146,8 @@ def main(
             # make peft hopefully make coords tunable
             "label_names": ["coords"],
 
-            "keep_fraction": 1.0
+            "keep_fraction": 1.0,
+            "dataset_folder": "mind2web-cache",
         }
     )
 

@@ -164,6 +164,13 @@ class Llama2dWebsiteFeatureExtractor(object):
                     torch.zeros(MAX_SEQ_LEN - len(attention_mask), dtype=torch.long),
                 ]
             )
+        
+        # assert all tensors are the desired length
+        assert len(input_ids) == MAX_SEQ_LEN, f"len(input_ids) = {len(input_ids)}"
+        assert len(label_ids) == MAX_SEQ_LEN, f"len(label_ids) = {len(label_ids)}"
+        assert len(input_coords) == MAX_SEQ_LEN, f"len(input_coords) = {len(input_coords)}"
+        assert len(attention_mask) == MAX_SEQ_LEN, f"len(attention_mask) = {len(attention_mask)}"
+
 
         # return output
         return {

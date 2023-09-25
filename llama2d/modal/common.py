@@ -20,7 +20,7 @@ secrets_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../secrets/"
 data_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../data/"
 dataset_dir = f"{os.path.dirname(os.path.realpath(__file__))}/datasets/"
 
-fresh_build = True
+fresh_build = False
 import random
 
 image = (
@@ -32,10 +32,7 @@ image = (
         channels=["conda-forge", "nvidia"],
     )
     .apt_install("git","unzip")
-    .pip_install("huggingface_hub==0.17.1", "hf-transfer==0.1.3", "scipy")
-    .pip_install("gdown","google-cloud-vision","sentencepiece","playwright")
-    # .run_commands("playwright install && playwright install-deps")
-    .pip_install("transformers")
+    .pip_install("huggingface_hub==0.17.1", "hf-transfer==0.1.3", "scipy","gdown","google-cloud-vision","sentencepiece","playwright","wandb","transformers")
     .pip_install(
         f"llama-recipes @ git+https://github.com/modal-labs/llama-recipes.git",
         extra_index_url="https://download.pytorch.org/whl/nightly/cu118",
@@ -43,15 +40,12 @@ image = (
     )
     .run_commands(f"echo {random.random()}" if fresh_build else "echo 0.0")
     .run_commands("pip install 'llama-recipes @ git+https://github.com/llama2d/llama-recipes.git@andrew-dev' git+https://github.com/llama2d/transformers.git@overwriting-llama --no-deps")
-    # .run_commands("cp /opt/conda/lib/python3.9/site-packages/bitsandbytes/libbitsandbytes_cuda*.so /opt/conda/lib/python3.9/site-packages/bitsandbytes/libbitsandbytes_cpu.so")
     .env(dict(HUGGINGFACE_HUB_CACHE="/pretrained", HF_HUB_ENABLE_HF_TRANSFER="1"))
     .copy_local_dir(secrets_dir, "/root/secrets")
     .copy_local_file(f"{os.path.dirname(os.path.realpath(__file__))}/finetuning.py", "/root/finetuning.py")
-    # .run_commands("pip install 'llama-recipes @ git+https://github.com/Llama2D/llama-recipes.git@7e2153520aaa8d20a64bbcd510aedde6af3b281f' --no-deps")
-    # .copy_local_file("flat_param.py","/opt/conda/lib/python3.9/site-packages/torch/distributed/fsdp/flat_param.py")
 )
 
-stub = Stub("llama-finetuning", image=image, secrets=[Secret.from_name("huggingface")])
+stub = Stub("llama-finetuning", image=image, secrets=[Secret.from_name("huggingface"),Secret.from_name("wandb")])
 
 # Download pre-trained models into this volume.
 stub.pretrained_volume = Volume.persisted("example-pretrained-vol")

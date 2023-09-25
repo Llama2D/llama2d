@@ -35,6 +35,7 @@ def get_uid_to_hhtml_map() -> Dict[str, str]:
     return {get_uid(path): path for path in all_mhtmls}
 
 import shutil
+from time import sleep
 
 should_debug = False
 
@@ -50,38 +51,44 @@ def save_inputs_from_task(
 
     intention = task["confirmed_task"]
 
-    try:
+    # if task["website"] != "us.megabus":
+    #     print(f"Skipping website {task['website']}")
+    #     return
 
-        intention_alpha = "".join([i for i in intention if i.isalpha()])
-        task_dir = f"{MIND2WEB_VIZ_DIR}/{intention_alpha}"
-        if os.path.exists(task_dir):
-            shutil.rmtree(task_dir)
-        os.mkdir(task_dir)
+    num_succeeded = 0
+    num_failed = 0
 
-        did_finish = False
+    intention_alpha = "".join([i for i in intention if i.isalpha()])
+    task_dir = f"{MIND2WEB_VIZ_DIR}/{intention_alpha}"
+    if os.path.exists(task_dir):
+        shutil.rmtree(task_dir)
+    os.mkdir(task_dir)
 
-        for i,action in enumerate(task["actions"]):
-            uid = action["action_uid"]
+    did_finish = False
 
-            action_dir = MIND2WEB_OUT_DIR / uid
+    for i,action in enumerate(task["actions"]):
 
-            
+        uid = action["action_uid"]
 
-            hhtml_file = uid_to_hhtml[uid]
+        action_dir = MIND2WEB_OUT_DIR / uid
 
-            pos_candidates = action["pos_candidates"]
-            if len(pos_candidates) == 0:
-                print("WARNING: No positive candidates!")
-                continue
+        
 
-            hhtml_file = "file://" + hhtml_file
+        hhtml_file = uid_to_hhtml[uid]
 
-            try:
-                page.goto(hhtml_file)
-            except Exception as e:
-                print(f"Error going to {hhtml_file}!")
-                print(e)
-                continue
+        pos_candidates = action["pos_candidates"]
+        if len(pos_candidates) == 0:
+            print("WARNING: No positive candidates!")
+            continue
+
+        hhtml_file_name = hhtml_file.split("/")[-1]
+        hhtml_file = "http://localhost:5002/" + hhtml_file_name
+
+        try:
+            page.goto(hhtml_file)
+
+            sleep(0.5)
+
             gt_tag,tags_and_boxes = add_tags_to_webpage(page, action)
             # print(f"len(tags_and_boxes) = {len(tags_and_boxes)}")
             # count # of tags and boxes with y < height
@@ -94,14 +101,17 @@ def save_inputs_from_task(
             
             screenshot_path = action_dir / "screenshot.png"
 
+
             # we set url=None because we have already gone to the url
             take_screenshot(page, None, screenshot_path)
 
             # cp screenshot_path to task_dir/i.png
             subprocess.run(["cp", screenshot_path, f"{task_dir}/{i}.png"])
 
+            actions_str = "\n".join(task["action_reprs"])
             prompt = f"""
-    You are a real estate agent using a website. Your goal is: "{intention}"
+    You are a bot using a website. Your goal is: "{intention}"
+    {"So far, you have done the following actions: "+actions_str if len(actions_str) > 0 else ""}
     The website looks like so:"""
 
             operation = action["operation"]
@@ -128,25 +138,30 @@ def save_inputs_from_task(
             }
             with open(action_dir / "input.json", "w") as f:
                 json.dump(json_vals, f)
-        
-        did_finish = True
+            
+            num_succeeded += 1
+        except Exception as e:
+            print(f"Failed on {uid} / {intention} / {i} / {task['website']}")
+            print(e)
+            with open("task.json", "w") as f:
+                json.dump(task, f)
+            if should_debug:
+                import pdb; pdb.set_trace()
+            num_failed += 1
+    
+    did_finish = True
 
-    except Exception as e:
-        print(f"URL: {hhtml_file}")
-        print("Error processing task!")
-        print(e)
-        with open("task.json", "w") as f:
-            json.dump(task, f)
-        if should_debug:
-            import pdb; pdb.set_trace()
-        # return
+    # return
 
     if did_finish:
         print("Successfully processed task!")
     else:
         print(f"Task failed - site {task['website']}, task {task['confirmed_task']}")
         # import pdb; pdb.set_trace()
-
+    
+    return num_succeeded, num_failed
+    
+import random
 def load_all_tasks():
     print(f"Loading data from {MIND2WEB_IN_DIR}...")
     
@@ -165,7 +180,8 @@ def load_all_tasks():
 
     with sync_playwright() as p:
         # Using the Chromium browser but you can also use 'firefox' or 'webkit'
-        browser = p.chromium.launch(headless=False)
+        # disable web security so we can load local files
+        browser = p.chromium.launch(headless=False, args=["--disable-web-security"])
         page = browser.new_page()
 
         page.set_extra_http_headers(
@@ -179,11 +195,29 @@ def load_all_tasks():
         width, height = SCREEN_RESOLUTION
         page.set_viewport_size({"width": width, "height": height})
 
+        num_succeeded = 0
+        num_failed = 0
+
         for task in tqdm(train):
-            save_inputs_from_task(page, task, extractor, uid_to_hhtml)
+
+            # if random.random() > 0.05:
+            #     continue
+
+            curr_succeeded,curr_failed = save_inputs_from_task(page, task, extractor, uid_to_hhtml)
+            num_succeeded += curr_succeeded
+            num_failed += curr_failed
+        
+        print(f"num_succeeded = {num_succeeded}")
+        print(f"num_failed = {num_failed}")
 
     print(f"Done loading input training data! Data is saved in {MIND2WEB_OUT_DIR}.")
 
 
 if __name__ == "__main__":
     load_all_tasks()
+
+with sync_playwright() as p:
+    # Using the Chromium browser but you can also use 'firefox' or 'webkit'
+    # disable web security so we can load local files
+    browser = p.chromium.launch(headless=False, args=["--disable-web-security"])
+    page = browser.new_page()

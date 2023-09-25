@@ -59,7 +59,47 @@ const convertHoverToCls = () => {
     })
 }
 
-window.tagifyWebpage = (gtEls,useGt=true) =>{
+window.tagifyWebpage = (gtEls,useGt=true,rawHtml="") =>{
+
+    // Populate mHTML input values with raw_html from action JSON
+    if(rawHtml.length>0){
+        // parse html
+        const parser = new DOMParser();
+        const htmlDoc = parser.parseFromString(rawHtml, 'text/html');
+
+        [...htmlDoc.querySelectorAll("[input_value], [input_checked]")].forEach(el=>{
+            if(el.attributes.bounding_box_rect.value==="-1,-1,-1,-1") return;
+            
+            // get the position of the input on the page
+            const classNames = [...el.classList].map(cls=>"."+cls).join("");
+        
+            const id = [el.id].filter(e=>e).map(id=>"#"+id)
+            console.log(el.id,el.attributes.id)
+            const tag = el.tagName.toLowerCase();
+        
+            const selector = `${tag}${classNames}${id}`;
+        
+            const fragmentMatches = htmlDoc.querySelectorAll(selector)
+            const numMatchesInFragment = fragmentMatches.length;
+            const fragmentIdx = [...fragmentMatches].indexOf(el);
+        
+            if(fragmentIdx<0) throw new Error("Could not find element with its own selector");
+        
+            const docMatches = document.querySelectorAll(selector);
+            if(docMatches.length != fragmentMatches.length) throw new Error(`Mismatched lengths: ${docMatches.length} vs. ${fragmentMatches.length}: ${selector}`);
+            const docEl = docMatches[fragmentIdx];
+        
+            // if has input_value, set docEl.value
+            if("input_value" in el.attributes) {
+                docEl.value = el.attributes.input_value.value;
+            }
+            else if("input_checked" in el.attributes) docEl.checked = el.attributes.input_checked.value;
+            else {
+                throw new Error("didn't find things");
+            }
+            
+        })
+    }
 
     convertHoverToCls();
 
@@ -160,7 +200,7 @@ window.tagifyWebpage = (gtEls,useGt=true) =>{
     const closestDistance = Math.min(...elementDistances);
     const closestElement = validGtCandidates[elementDistances.indexOf(closestDistance)];
 
-    if(closestDistance > 50) {
+    if(closestDistance > 10) {
         throw new Error(`Closest element is ${closestDistance}px away! Bboxes are ${validGtCandidates.map(({el})=>el.getBoundingClientRect()).map(({left, top, width, height})=>[left, top, width, height])})}}`);
     }
 

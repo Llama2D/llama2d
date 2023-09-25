@@ -12,7 +12,7 @@ class TagAndBox:
 def add_tags_to_webpage(page, mind2web_action) -> Tuple[int,List[TagAndBox]]:
     """
     Add visual tags to a webpage, and find the tag # of the desired Mind2Web action.
-    A visual tag looks like [12] and is put next to buttons, textboxes, links, etc.
+    A visual tag looks like [12] and is superimposed on buttons, textboxes, links, etc.
     """
 
     attrss = [json.loads(pos_candidate["attributes"]) for pos_candidate in mind2web_action["pos_candidates"]]
@@ -27,6 +27,8 @@ def add_tags_to_webpage(page, mind2web_action) -> Tuple[int,List[TagAndBox]]:
             "tag_id":tag_id,
             "bbox_rect":bbox_rect
         })
+    
+    raw_html = mind2web_action["raw_html"]
 
     # print(f"Looking for element with class {cls} and id {tag_id} and bbox {bbox_rect}")
     # print()
@@ -36,9 +38,10 @@ def add_tags_to_webpage(page, mind2web_action) -> Tuple[int,List[TagAndBox]]:
         page.evaluate(f.read())
 
     try:
-        to_eval = f"tagifyWebpage({json.dumps(els)})"
+        to_eval = f"tagifyWebpage({json.dumps(els)},true,{json.dumps(raw_html)})"
         gt_tag_id,el_tags = page.evaluate(to_eval)
     except Exception as e:
+        raise e
         raise Exception(f"Error evaluating:\n{to_eval}\n{e}")
 
     assert type(gt_tag_id) == int, f"gt_tag_id is {json.dumps(gt_tag_id)}!"
