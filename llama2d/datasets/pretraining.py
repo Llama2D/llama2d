@@ -3,6 +3,7 @@ from llama2d.datasets.cached import save_dataset
 from torch.utils.data import Dataset
 from .pretraining_urls import urls
 from ..vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
+from .huggingface import DatasetInfo, publish_pt_dataset
 
 from playwright.sync_api import sync_playwright
 
@@ -69,17 +70,18 @@ def exceptional(call, args):
 
         return None
 
+pretraining_repo = "llama2d/llama2d-pretraining"
 
-def main():
+if __name__ == "__main__":
     print("Downloading pretraining dataset with Playwright...")
+
+    ds_info = DatasetInfo(
+        repo=pretraining_repo,
+        desc="Llama2d pretraining dataset - next-token prediction on real estate websites",
+    )
 
     dataset = Llama2dPretrainingDataset(
         model="decapoda-research/llama-7b-hf", urls=urls, include_coords=True
     )
-    save_dataset(dataset, PRETRAINING_CACHE_DIR)
 
-    print("Pretraining dataset saved to ", PRETRAINING_CACHE_DIR)
-
-
-if __name__ == "__main__":
-    main()
+    publish_pt_dataset(dataset, ds_info)

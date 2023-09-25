@@ -7,6 +7,13 @@ import numpy as np, torch
 #
 from llama2d.datasets.cached import CachedDataset
 
+from dataclasses import dataclass
+
+@dataclass
+class DatasetInfo:
+  repo: str
+  desc: str
+
 def dataset_dict_to_list(dataset_dict):
   """
   Converts a Torch dataset stored as a dictionary to a list of dictionaries.
@@ -43,7 +50,7 @@ def pt2hf(torch_dataset: data.Dataset,
   dset_hf = Dataset.from_list(torch_dataset)  
   return dset_hf
 
-def main(ds_pt, args):
+def publish_pt_dataset(ds_pt, args):
   try:
     ds = pt2hf(ds_pt)   # may require setting: convert_type=np.float32
     print(f"Dataset type:{ds}")
@@ -55,7 +62,7 @@ def main(ds_pt, args):
       print(f"Exception while publishing: {e}")
 
 if __name__=="__main__":
-  from ...constants import PRETRAINING_CACHE_DIR
+  from ..constants import PRETRAINING_CACHE_DIR
   import argparse
   parser = argparse.ArgumentParser(description="Description of your script")
   # Argument 1: First argument (e.g., input file)
@@ -71,4 +78,4 @@ if __name__=="__main__":
   
   args = parser.parse_args()
   ds_pt = CachedDataset(args.cache_dir)
-  main(ds_pt, args)
+  publish_pt_dataset(ds_pt, args)
