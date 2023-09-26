@@ -1,6 +1,5 @@
-from modal import gpu, Mount, Secret
-
-from common import stub, N_GPUS, GPU_MEM, BASE_MODELS, VOLUME_CONFIG
+from common import BASE_MODELS, GPU_MEM, N_GPUS, VOLUME_CONFIG, stub
+from modal import Mount, gpu, Secret
 
 import sys
 import os
@@ -13,13 +12,16 @@ import llama2d
     volumes=VOLUME_CONFIG,
     memory=1024 * 100,
     timeout=3600 * 4,
+    secrets=[Secret.from_name("huggingface")],
 )
 def download(model_name: str):
 
-    from huggingface_hub import snapshot_download
-    from transformers.utils import move_cache
+    assert 'HUGGINGFACE_TOKEN' in os.environ, 'Please set the HUGGINGFACE_TOKEN environment variable.'
+    from huggingface_hub.hf_api import HfFolder; HfFolder.save_token(os.environ['HUGGINGFACE_TOKEN'])
 
-    from llama_recipes.finetuning import is_llama2d_enabled
+    from huggingface_hub import snapshot_download
+
+    from transformers.utils import move_cache
 
     try:
         snapshot_download(model_name, local_files_only=True)
@@ -34,10 +36,24 @@ def download(model_name: str):
 
 
 def library_entrypoint(config):
-    from llama_recipes.finetuning import main,is_llama2d_enabled
-    print("Is llama2d enabled?", is_llama2d_enabled)
+    import os
+    print(os.getcwd(),os.listdir())
+    assert 'HUGGINGFACE_TOKEN' in os.environ, 'Please set the HUGGINGFACE_TOKEN environment variable.'
+    from huggingface_hub.hf_api import HfFolder; HfFolder.save_token(os.environ['HUGGINGFACE_TOKEN'])
 
-    main(**config)
+    print(config)
+    from finetuning import main
+
+    from transformers import LlamaForCausalLM, LlamaConfig
+    # from llama2d.model.modeling_llama import Llama2DForCausalLM
+    # from llama2d.model.configuration_llama import Llama2DConfig
+    # from llama2d.model.modeling_llama_old import LlamaForCausalLM
+    # from llama2d.model.configuration_llama_old import LlamaConfig
+
+    Llama = LlamaForCausalLM
+    # LlamaConfig = Llama2DConfig
+
+    main(Llama,LlamaConfig,**config)
 
 
 @stub.function(
@@ -49,7 +65,7 @@ def library_entrypoint(config):
     timeout=3600 * 12,
 )
 def train(train_kwargs):
-    from torch.distributed.run import elastic_launch, parse_args, config_from_args
+    from torch.distributed.run import config_from_args, elastic_launch, parse_args
 
     torch_args = parse_args(["--nnodes", "1", "--nproc_per_node", str(N_GPUS), ""])
     print(f"{torch_args=}\n{train_kwargs=}")
@@ -71,9 +87,13 @@ def main(
     run_id: str = "",
     num_epochs: int = 10,
     batch_size: int = 16,
+    use_2d: bool = True,
+    ignore_pos_embeds: bool = False,
+    peft: bool = True,
 ):
     import os
     print(f"Welcome to Modal Llama fine-tuning.")
+    print(f"Dataset is {dataset}.")
 
     # print(dict(Secret.from_name("huggingface").__dict__))
     # os.environ["HUGGINGFACE_TOKEN"] = Secret.from_name("huggingface")["HUGGINGFACE_TOKEN"]
@@ -96,7 +116,10 @@ def main(
             "model_name": BASE_MODELS[base],
             "output_dir": f"/results/{run_id}",
             "batch_size_training": batch_size,
-            "lr": 3e-4,
+
+            "lr": 3e-5,
+            "lambda_lr": 3e-4,
+
             "num_epochs": num_epochs,
             "val_batch_size": 1,
             # --- Dataset options ---
@@ -112,10 +135,21 @@ def main(
             "fsdp_config.fsdp_cpu_offload": True,
             "fsdp_peft_cpu_offload_for_save": True,  # Experimental
             # --- PEFT options ---
-            "use_peft": True,
+            "use_peft": peft,
             "peft_method": "lora",
             "lora_config.r": 8,
             "lora_config.lora_alpha": 16,
+
+            "use_2d": use_2d,
+            "ignore_pos_embeds": ignore_pos_embeds,
+
+            # make peft hopefully make coords tunable
+            "label_names": ["coords"],
+
+            "keep_fraction": 1.0,
+            "dataset_folder": "mind2web-cache",
+
+            "repo": f"llama2d/llama2d-mind2web",
         }
     )
 

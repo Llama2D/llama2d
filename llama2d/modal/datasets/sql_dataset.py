@@ -1,7 +1,5 @@
 import datasets
-
 from llama_recipes.datasets.utils import Concatenator
-
 
 B_INST, E_INST = "[INST] ", " [/INST]"
 B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"

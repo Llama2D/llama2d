@@ -35,18 +35,22 @@ def dataset_dict_to_list(dataset_dict):
     dataset_list.append(sample_dict)
   return dataset_list
 
+def to(a,device:torch.device):
+    if torch.is_tensor(a):
+        return a.to(device)
+    elif isinstance(a,dict):
+        return {k:to(v,device) for k,v in a.items()}
+    elif isinstance(a,(list,tuple)):
+        return type(a)(to(v,device) for v in a)
+    else:
+        return a
 
 def pt2hf(torch_dataset: data.Dataset,
           convert_type: types=torch.float32):
-  def gen(torch_dataset):
-    for idx in len(torch_dataset):
-      yield torch_dataset[idx]  # this has to be a dictionary
-  if convert_type:
-    torch_dataset = [
-      {k: v.to(convert_type) for k,v in torch_dataset[i].items()} 
-        for i in range(len(torch_dataset))
-    ]
-  # dset = Dataset.from_generator(gen(torch_dataset))
+  torch_dataset = [torch_dataset[i] for i in range(len(torch_dataset)) if torch_dataset[i] is not None]
+  if convert_type is not None:
+    torch_dataset = to(torch_dataset, convert_type)
+  # import pdb; pdb.set_trace()
   dset_hf = Dataset.from_list(torch_dataset)  
   return dset_hf
 
@@ -55,11 +59,46 @@ def publish_pt_dataset(ds_pt, args):
     ds = pt2hf(ds_pt)   # may require setting: convert_type=np.float32
     print(f"Dataset type:{ds}")
     ds.info.description = args.desc
-    ds.set_format(type='torch', columns=list(ds_pt[0].keys()))
+    ds.set_format(type='torch', columns=list(ds[0].keys()))
     ds.push_to_hub(args.repo)
     print(f"Push succeeded.")
   except Exception as e:
+      raise e
       print(f"Exception while publishing: {e}")
+
+import torch
+from datasets import load_dataset
+
+dtypes = {
+    "coords":torch.float16,
+    "input_ids":torch.int64,
+    "labels":torch.int64,
+    "attention_mask":torch.int64,
+}
+
+class HuggingFaceDataset(torch.utils.data.Dataset):
+    def __init__(self,repo:str,split:str):
+        dataset = list(load_dataset(repo)["train"])
+
+        # split into train/val
+        train_percent = 80
+        train_size = int(len(dataset)*train_percent/100)
+        val_size = len(dataset)-train_size
+        train_dataset,val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
+
+        self.dataset = train_dataset if split == "train" else val_dataset
+    
+    def __getitem__(self, index):
+        hf_dict = self.dataset[index]
+
+        # convert to torch tensors
+        ret = {k:torch.tensor(v,dtype=dtypes[k]) for k,v in hf_dict.items()}
+
+        return ret
+
+    def __len__(self):
+        return len(self.dataset)
+
 
 if __name__=="__main__":
   from ..constants import PRETRAINING_CACHE_DIR

@@ -1,30 +1,52 @@
 import json
 import os
 
+from dataclasses import dataclass
+from typing import Tuple, List
 
-def add_tags_to_webpage(page, mind2web_action) -> int:
+@dataclass
+class TagAndBox:
+    word: str
+    coords: Tuple[int,int]
+
+def add_tags_to_webpage(page, mind2web_action) -> Tuple[int,List[TagAndBox]]:
     """
     Add visual tags to a webpage, and find the tag # of the desired Mind2Web action.
-    A visual tag looks like [12] and is put next to buttons, textboxes, links, etc.
+    A visual tag looks like [12] and is superimposed on buttons, textboxes, links, etc.
     """
 
-    pos_candidates = mind2web_action["pos_candidates"]
+    attrss = [json.loads(pos_candidate["attributes"]) for pos_candidate in mind2web_action["pos_candidates"]]
 
-    assert len(pos_candidates) == 1, "Only one positive candidate is supported"
+    els = []
+    for attrs in attrss:
+        cls = attrs.get("class", None)
+        tag_id = attrs.get("id", None)
+        bbox_rect = [float(i) for i in attrs["bounding_box_rect"].split(",")]
+        els.append({
+            "cls":cls,
+            "tag_id":tag_id,
+            "bbox_rect":bbox_rect
+        })
+    
+    raw_html = mind2web_action["raw_html"]
 
-    attrs = json.loads(mind2web_action["pos_candidates"][0]["attributes"])
-
-    cls = attrs.get("class", None)
-    id = attrs.get("id", None)
-
-    print(f"Looking for element with class {cls} and id {id}")
+    # print(f"Looking for element with class {cls} and id {tag_id} and bbox {bbox_rect}")
+    # print()
 
     curr_dir = os.path.dirname(os.path.realpath(__file__))
     with open(f"{curr_dir}/tagUtils.js", "r") as f:
         page.evaluate(f.read())
 
-    gt_tag_id = page.evaluate(f"tagifyWebpage({json.dumps(cls)},{json.dumps(id)})")
-    return int(gt_tag_id)
+    try:
+        to_eval = f"tagifyWebpage({json.dumps(els)},true,{json.dumps(raw_html)})"
+        gt_tag_id,el_tags = page.evaluate(to_eval)
+    except Exception as e:
+        raise e
+        raise Exception(f"Error evaluating:\n{to_eval}\n{e}")
+
+    assert type(gt_tag_id) == int, f"gt_tag_id is {json.dumps(gt_tag_id)}!"
+
+    return gt_tag_id,[TagAndBox(**i) for i in el_tags]
 
 
 if __name__ == "__main__":
