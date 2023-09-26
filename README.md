@@ -132,14 +132,10 @@ The best way to run this is on a Lambda Labs A10G instance for $0.60/hr.
 
 ### Modal training
 
-> Note from Andrew H: I haven't touched or tried Modal training yet. This is highly speculative and probably wrong. Sarma should fix/finish this section.
-
-To train a model with Modal, you need to do the following:
-
-Change your directory to `llama2d/modal/` and run
+To train a model with Modal, change your directory to `llama2d/modal/` and run i.e.
 
 ```bash
-modal train --dataset <dataset_name>
+modal run train.py --dataset hf_dataset.py --repo llama2d/llama2d-mind2web --no-peft --num-epochs 4
 ```
 
-where `dataset_name` is the filename (minus `.py`) of a file in `llama2d/modal/datasets/`.
+`peft` is a synonym for LoRA. `hf_dataset` means we are using a dataset uploaded to Huggingface (thanks Mo!). [`llama2d/llama2d-mind2web`](https://huggingface.co/datasets/llama2d/llama2d-mind2web/viewer/default/train?row=0) is the Huggingface repo containing the dataset.

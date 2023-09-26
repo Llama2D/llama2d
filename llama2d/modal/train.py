@@ -90,6 +90,7 @@ def main(
     use_2d: bool = True,
     ignore_pos_embeds: bool = False,
     peft: bool = True,
+    repo: str = "llama2d/llama2d-mind2web",
 ):
     import os
     print(f"Welcome to Modal Llama fine-tuning.")
@@ -149,7 +150,7 @@ def main(
             "keep_fraction": 1.0,
             "dataset_folder": "mind2web-cache",
 
-            "repo": f"llama2d/llama2d-mind2web",
+            "repo": repo
         }
     )
 
