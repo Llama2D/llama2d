@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 from google.cloud import vision
 
-from ..constants import SECRETS_FILE
+from ..constants import SECRETS_FILE, SCREEN_RESOLUTION
 
 
 @dataclass
@@ -24,6 +24,7 @@ class ImageAnnotatorResponse:
 
     words: List[ImageAnnotation]  # a list of words and their midpoints
 
+width,height = SCREEN_RESOLUTION
 
 class ImageAnnotator(object):
     def __init__(self, credentials=SECRETS_FILE):
@@ -70,8 +71,8 @@ class ImageAnnotator(object):
                     text=text.description,
                     midpoint=midpoint,
                     midpoint_normalized=(
-                        midpoint[0] / max_width,
-                        midpoint[1] / max_height,
+                        midpoint[0] / width,
+                        midpoint[1] / height,
                     ),
                 )
             )

@@ -45,13 +45,18 @@ def to(a,device:torch.device):
     else:
         return a
 
+from tqdm import tqdm
 def pt2hf(torch_dataset: data.Dataset,
           convert_type: types=torch.float32):
-  torch_dataset = [torch_dataset[i] for i in range(len(torch_dataset)) if torch_dataset[i] is not None]
+  torch_dataset = [el for el in tqdm(torch_dataset) if el is not None]
   if convert_type is not None:
     torch_dataset = to(torch_dataset, convert_type)
   # import pdb; pdb.set_trace()
-  dset_hf = Dataset.from_list(torch_dataset)  
+  try:
+    dset_hf = Dataset.from_list(torch_dataset)  
+  except Exception as e:
+    print(f"Exception while converting to hf dataset: {e}")
+    import pdb; pdb.set_trace()
   return dset_hf
 
 def publish_pt_dataset(ds_pt, args):

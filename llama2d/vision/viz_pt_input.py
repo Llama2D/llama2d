@@ -65,10 +65,14 @@ def viz_pt_input(pt_input):
         word_str = "".join(tokenizer.convert_ids_to_tokens([i[0] for i in word]))
         word_coord = word[0][1]
         # very small text
-        ax.text(word_coord[0],word_coord[1],word_str,fontsize=10)
+        ax.text(word_coord[0],1-word_coord[1],word_str,fontsize=10,horizontalalignment='center',
+        verticalalignment='center',)
     
     # save the figure
     fig.savefig("tokens_with_coords.png")
+
+    normal_str = "".join(tokenizer.convert_ids_to_tokens(input_ids))
+    print(normal_str)
 
     # as a str:
     without_coords_str = "".join(tokenizer.convert_ids_to_tokens(without_coords))
@@ -79,18 +83,33 @@ from ..datasets.mind2web import Mind2webDataset
 from ..datasets.huggingface import HuggingFaceDataset
 if __name__ == "__main__":
 
-    dataset = HuggingFaceDataset("llama2d/llama2d-mind2web",split="train")
+    with sync_playwright() as playwright:
+        # dataset = HuggingFaceDataset("llama2d/llama2d-mind2web",split="train")
 
-    # with sync_playwright() as playwright:
-    #     dataset = Mind2webDataset(playwright=playwright,headless=True)
+        dataset = Mind2webDataset(playwright=playwright,headless=False)
 
-    pt_input = None
-    for i in range(len(dataset)):
-        pt_input = dataset[i]
-        if pt_input is not None:
-            break
+        pt_input = None
 
-    if pt_input is None:
-        raise Exception("Couldn't find a valid input!")
-    viz_pt_input(pt_input)
-    
+        i = 0
+        while i < len(dataset):
+            pt_input = dataset[i]
+            if pt_input is not None:
+                viz_pt_input(pt_input)
+                action = input("Continue? [y/n/debug/<int skip>]")
+                if action == "n":
+                    break
+                if action.startswith("d"):
+                    import pdb; pdb.set_trace()
+                # check if action is an integer - then skip that many
+                if action.isdigit():
+                    print(f"Skipping {action}...")
+                    i += int(action)
+                    continue
+            i += 1
+                    
+
+        if pt_input is None:
+            raise Exception("Couldn't find a valid input!")
+        
+        input("Press enter to close the figure")
+        

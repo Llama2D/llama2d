@@ -16,16 +16,32 @@ const elIsClean = (el) => {
     return true;
 }
 
+const isNotCovered = (el) => {
+    const rect = el.getBoundingClientRect()
+    const elCenter = [rect.left + rect.width/2, rect.top + rect.height/2];
+
+    const elAtPoint = document.elementFromPoint(...elCenter)
+
+    return el.contains(elAtPoint)
+}
+const isInteractiveCursor = (el) => ["pointer","text"].includes(el.computedStyleMap().get("cursor"))
+
 const inputs = ['a', 'button', 'textarea', 'select', 'details', 'label']
-const _isInteractible = (el) => inputs.includes(el.tagName.toLowerCase()) ||
+const _isInteractible = (el) => (inputs.includes(el.tagName.toLowerCase()) ||
     (el.tagName.toLowerCase() === 'input' && el.type !== 'hidden') ||
     el.role === 'button' ||
-    el.computedStyleMap().get("cursor") == "pointer" && !(el.parentElement && el.parentElement.computedStyleMap().get("cursor") === "pointer")
+    isInteractiveCursor(el) && !(el.parentElement && isInteractiveCursor(el.parentElement))) && isNotCovered(el)
 
 const isInteractible = (el) => _isInteractible(el) || el.parentElement && isInteractible(el.parentElement);
 
 const emptyTagWhitelist = ["input","textarea","select","button","a"]
 const isEmpty = (el) => {
+
+    const bbox = el.getBoundingClientRect()
+    // check if center of element is offscreen
+    const center = [bbox.left + bbox.width/2, bbox.top + bbox.height/2]
+    if(center[0] < 0 || center[0] > window.innerWidth || center[1] < 0 || center[1] > window.innerHeight) return true
+
     const tagName = el.tagName.toLowerCase()
     if(emptyTagWhitelist.includes(tagName)) return false
     if("innerText" in el && el.innerText.trim().length === 0) {
@@ -140,27 +156,36 @@ window.tagifyWebpage = (gtEls,useGt=true,rawHtml="") =>{
             continue;
         }
 
+        const elBbox = el.getBoundingClientRect();
+        const elCenter = [elBbox.left + elBbox.width/2, elBbox.top + elBbox.height/2];
+
+        // get closest el in elTags
+        const [closestDist,closestEl] = elTags.map(({coords})=>coords).map(([x,y])=>Math.sqrt((x-elCenter[0])*(x-elCenter[0]) + (y-elCenter[1])*(y-elCenter[1]))).reduce((acc,cur,i)=>cur<acc[0]?[cur,i]:acc,[Infinity,-1]);
+        const useNewTag = closestDist > 5;
+
         if(isGt){
+            const gtTagId = useNewTag ? numTagsSoFar : closestEl;
             console.log("Tagging GT!", el);
             gtCandidates.push({
                 el,
-                tagId: numTagsSoFar,
+                tagId: gtTagId,
                 stats:{empty, dirty, uninteractible, validParent},
                 gtEls: gtMatches
             });
         }
 
-        const tagStr = `[${numTagsSoFar}] `
+        if(useNewTag){
 
-        const elBbox = el.getBoundingClientRect();
-        const elCenter = [elBbox.left + elBbox.width/2, elBbox.top + elBbox.height/2];
-        elTags.push({
-            word:tagStr,
-            coords:elCenter,
-        })
-        validEls.add(el);
+            const tagStr = `[${numTagsSoFar}] `
 
-        numTagsSoFar++;
+            elTags.push({
+                word:tagStr,
+                coords:elCenter,
+            })
+            validEls.add(el);
+
+            numTagsSoFar++;
+        }
     }
         console.log(validEls)
 
@@ -200,7 +225,7 @@ window.tagifyWebpage = (gtEls,useGt=true,rawHtml="") =>{
     const closestDistance = Math.min(...elementDistances);
     const closestElement = validGtCandidates[elementDistances.indexOf(closestDistance)];
 
-    if(closestDistance > 10) {
+    if(closestDistance > 20) {
         throw new Error(`Closest element is ${closestDistance}px away! Bboxes are ${validGtCandidates.map(({el})=>el.getBoundingClientRect()).map(({left, top, width, height})=>[left, top, width, height])})}}`);
     }
 
@@ -209,16 +234,19 @@ window.tagifyWebpage = (gtEls,useGt=true,rawHtml="") =>{
 }
 logElements=[]; // some elements where you can check your classification performance. useful for debugging.
 
-// window.showTag = coords => {
-//     myBox = document.createElement("div")
-//     myBox.style.width = "10px";
-//     myBox.style.height = "10px";
-//     myBox.style.background = "red";
-//     myBox.style.position = "absolute";
-//     myBox.style.top = coords[1]-5+"px";
-//     myBox.style.left = coords[0]-5+"px";
-//     myBox.textContent = "";
-//     myBox.style.zIndex = 2000
-//     document.body.appendChild(myBox)
-// }
+window.showTag = coords => {
+    myBox = document.createElement("div")
+    myBox.style.width = "10px";
+    myBox.style.height = "10px";
+    myBox.style.background = "red";
+    myBox.style.position = "absolute";
+    myBox.style.top = coords[1]-5+"px";
+    myBox.style.left = coords[0]-5+"px";
+    myBox.textContent = "";
+    myBox.style.zIndex = 2000
+    document.body.appendChild(myBox)
+}
+
+window.demo = () => tagifyWebpage([],false)[1].forEach(({coords})=>showTag(coords))
+1;
 

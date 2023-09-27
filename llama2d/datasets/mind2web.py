@@ -72,13 +72,16 @@ class Mind2webDataset(Dataset):
             mhtml_file_name = mhtml_file.split("/")[-1]
             mhtml_file = "http://localhost:5002/" + mhtml_file_name
             self.page.goto(mhtml_file)
-            sleep(0.5)
+            sleep(1)
 
             gt_tag,tags_and_boxes = add_tags_to_webpage(self.page, action)
 
             rand_num = random()
             screenshot_path = f"screenshot_{rand_num}.png"
             take_screenshot(self.page, None, screenshot_path)
+
+            self.page.evaluate("window.demo()")
+            take_screenshot(self.page,None,"screenshot.png")
 
             intention = task["confirmed_task"]
 
@@ -128,14 +131,14 @@ if __name__ == "__main__":
 
     ds_info = DatasetInfo(
         repo=mind2web_repo,
-        desc="Llama2d Mind2Web dataset - SFT dataset for tag interaction on real estate websites",
+        desc="Llama2d Mind2Web dataset - SFT dataset for tag interaction on diverse websites",
     )
 
     with sync_playwright() as playwright:
         dataset = Mind2webDataset(playwright=playwright)
 
-        num_samples = 100
-        # get the first few samples
+        # get a subset
+        num_samples = 300
         dataset,_ = torch.utils.data.random_split(dataset, [num_samples, len(dataset) - num_samples])
 
         publish_pt_dataset(dataset, ds_info)

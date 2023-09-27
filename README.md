@@ -138,4 +138,4 @@ To train a model with Modal, change your directory to `llama2d/modal/` and run i
 modal run train.py --dataset hf_dataset.py --repo llama2d/llama2d-mind2web --no-peft --num-epochs 4
 ```
 
-`peft` is a synonym for LoRA. `hf_dataset` means we are using a dataset uploaded to Huggingface (thanks Mo!). [`llama2d/llama2d-mind2web`](https://huggingface.co/datasets/llama2d/llama2d-mind2web/viewer/default/train?row=0) is the Huggingface repo containing the dataset.
+`peft` is a synonym for LoRA. `hf_dataset` means we are using a dataset uploaded to Huggingface (thanks Matthew!). [`llama2d/llama2d-mind2web`](https://huggingface.co/datasets/llama2d/llama2d-mind2web/viewer/default/train?row=0) is the Huggingface repo containing the dataset.

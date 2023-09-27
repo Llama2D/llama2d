@@ -2,8 +2,13 @@ const express = require('express');
 const { Parser } = require("fast-mhtml");
 const fs = require('fs');
 
+const filenamify = require('filenamify');
+
 const { join } = require('path');
 const mhtmlDir = join(__dirname, '../data/mind2web-mhtml');
+// const mhtmlDir = join(__dirname, 'demos');
+
+const sentinel = 'mind2web_local_serve:'
 
 const app = express();
 const fileCache = new Map();
@@ -14,7 +19,16 @@ app.get('/:path', (req, res) => {
     if (file.endsWith('mhtml')) { // main file
     fileCache.clear(); // empty cache
 
-    const parser = new Parser({ });
+    let base = null;
+
+    const parser = new Parser({
+        rewriteFn: (url) => {
+            if(new URL(url,`http://localhost:${port}/`).protocol.startsWith('http')) {
+                return url;
+            }
+            return sentinel+filenamify(url);
+        }
+    });
     // const fp = promised(fs.readFile, `${mhtmlDir}/${file}`);
     const fp = fs.promises.readFile(`${mhtmlDir}/${file}`);
     fp.then((data) => parser.parse(data).rewrite().spit()).then((spitFiles) => {
@@ -31,6 +45,12 @@ app.get('/:path', (req, res) => {
     });
     return;
     }
+
+    // redirect to URL in path
+    if(!file.startsWith(sentinel) && (file.includes(".css") || file.includes(".js"))){
+        return res.redirect(file);
+    }
+
     const result = fileCache.get(file);
     if (!result) {
     res.status(404);

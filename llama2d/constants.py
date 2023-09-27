@@ -27,6 +27,6 @@ MAX_PAGE_LEN = 1000
 # max number of tokens inputted to Llama2d - between prompt, page, and completion
 # we will truncate big inputs to this number
 # we will also pad small inputs to this number
-MAX_SEQ_LEN = 1500
+MAX_SEQ_LEN = 2000
 
-MAX_TAGS_LEN = 75
+MAX_TAGS_LEN = 150
