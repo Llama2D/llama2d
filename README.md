@@ -4,7 +4,7 @@
 
 ```bash
 git clone https://github.com/llama2d/llama2d.git --recursive
-cd llama2d/transformers && pip install -e . && cd ..
+cd transformers && pip install -e . && cd ..
 pip install -r requirements.txt
 playwright install
 ```
