@@ -1,16 +1,14 @@
 import io
-import subprocess
-import time
 
 import numpy as np
-import undetected_chromedriver as uc
 from PIL import Image
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
-options = Options()
-user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+user_agent = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    " (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+)
 
 options = webdriver.ChromeOptions()
 options.add_argument(f"user-agent={user_agent}")
@@ -36,9 +34,9 @@ def scrape_scroll(url):
     driver = webdriver.Chrome(options=options)  # Make sure the path to
     # driver = uc.Chrome(headless=True, use_subprocess=False, option)
 
-    driver.get(
-        url
-    )  # Replace with the URL of the webpage you want to screenshot# Set the initial scroll height
+    driver.get(url)
+    # Replace with the URL of the webpage you want to screenshot
+    # Set the initial scroll height
     screenshots = []
     scroll_height = 0
     try:
@@ -64,7 +62,7 @@ def scrape_scroll(url):
             # Break the loop if we have reached the end of the page
             if scroll_height > 10:  # You can adjust the number of scrolls as needed
                 break
-    except:
+    except Exception:
         pass
 
     finally:

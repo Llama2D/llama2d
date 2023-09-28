@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 
 
-def run(driver, action):
+def run(driver):
     menu = driver.find_element_by_css_selector(".nav")
     hidden_submenu = driver.find_element_by_css_selector(".nav # submenu1")
 
@@ -24,6 +24,7 @@ def run(driver, action):
 # Project Example –
 # create webdriver object
 # get geeksforgeeks.org
+driver = webdriver.Chrome()
 driver.get("https://www.geeksforgeeks.org/")
 # get element
 element = driver.find_element_by_link_text("Courses")

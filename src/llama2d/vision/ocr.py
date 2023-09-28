@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 from google.cloud import vision
 
-from ..constants import SCREEN_RESOLUTION, SECRETS_FILE
+from src.llama2d.constants import SCREEN_RESOLUTION, SECRETS_FILE
 
 
 @dataclass
@@ -30,18 +30,12 @@ width, height = SCREEN_RESOLUTION
 
 class ImageAnnotator:
     def __init__(self, credentials=SECRETS_FILE):
-        try:
-            import os
-
-            print(os.getcwd())
-            self.client = vision.ImageAnnotatorClient.from_service_account_file(
-                credentials
-            )
-        except Exception as e:
+        if not credentials.exists():
             raise ValueError(
-                "OCR Object creation FAILED!\n\n@@@HINT: did you get secrets/google-vision.json from the slack channel?"
+                f"Place the Google Cloud credentials file in {credentials}"
             )
 
+        self.client = vision.ImageAnnotatorClient.from_service_account_file(credentials)
         self.__features = [vision.Feature(type_=vision.Feature.Type.TEXT_DETECTION)]
 
     def __call__(self, path):

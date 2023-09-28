@@ -1,5 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
-# This software may be used and distributed according to the terms of the Llama 2 Community License Agreement.
+# This software may be used and distributed according to the
+# terms of the Llama 2 Community License Agreement.
 
 import os
 
@@ -57,7 +58,7 @@ def main(Llama, LlamaCfg, **kwargs):
         # torchrun specific
         local_rank = int(os.environ["LOCAL_RANK"])
         rank = int(os.environ["RANK"])
-        world_size = int(os.environ["WORLD_SIZE"])
+        # world_size = int(os.environ["WORLD_SIZE"])
 
     if torch.distributed.is_initialized():
         torch.cuda.set_device(local_rank)
@@ -107,7 +108,8 @@ def main(Llama, LlamaCfg, **kwargs):
         verify_latest_nightly = v.is_devrelease and v.dev >= 20230701
         if not verify_latest_nightly:
             raise Exception(
-                "latest pytorch nightly build is required to run with low_cpu_fsdp config, "
+                "latest pytorch nightly build is required to "
+                "run with low_cpu_fsdp config, "
                 "please install latest nightly."
             )
         if rank == 0:
@@ -151,7 +153,8 @@ def main(Llama, LlamaCfg, **kwargs):
             model = BetterTransformer.transform(model)
         except ImportError:
             print(
-                "Module 'optimum' not found. Please install 'optimum' it before proceeding."
+                "Module 'optimum' not found."
+                " Please install 'optimum' it before proceeding."
             )
     print_model_size(model, train_config, rank if train_config.enable_fsdp else 0)
 
@@ -174,7 +177,7 @@ def main(Llama, LlamaCfg, **kwargs):
         trainable_params_before, _ = model.get_nb_trainable_parameters()
 
         if not ignore_pos_embeds:
-            print(f"--------IGNORE POS EMBEDS IS FALSE--------")
+            print("--------IGNORE POS EMBEDS IS FALSE--------")
             for k, v in model.named_parameters():
                 if k.endswith(".lbd"):
                     v.requires_grad = v.data.requires_grad = True
@@ -183,19 +186,22 @@ def main(Llama, LlamaCfg, **kwargs):
         trainable_params_after, _ = model.get_nb_trainable_parameters()
         assert (use_2d and not ignore_pos_embeds) == (
             trainable_params_after > trainable_params_before
-        ), f"Looks like lambda gating parameter isn't marked as trainable. Before: {trainable_params_before}, after: {trainable_params_after}"
+        ), (
+            "Looks like lambda gating parameter isn't marked as trainable."
+            f" Before: {trainable_params_before}, after: {trainable_params_after}"
+        )
 
         model.print_trainable_parameters()
     else:
         if not ignore_pos_embeds:
-            print(f"--------IGNORE POS EMBEDS IS FALSE--------")
+            print("--------IGNORE POS EMBEDS IS FALSE--------")
             for k, v in model.named_parameters():
                 if k.endswith(".lbd"):
                     v.requires_grad = v.data.requires_grad = True
                     print(k, "requires_grad=", v.requires_grad, v.data)
 
     if ignore_pos_embeds:
-        print(f"--------IGNORE POS EMBEDS IS TRUE--------")
+        print("--------IGNORE POS EMBEDS IS TRUE--------")
         # make all .lbd parameters untrainable
         for k, v in model.named_parameters():
             if k.endswith(".lbd"):
@@ -278,17 +284,6 @@ def main(Llama, LlamaCfg, **kwargs):
         )
 
     # Initialize the optimizer and learning rate scheduler
-
-    named_params = list(model.named_parameters())
-    params = [
-        {
-            "params": [param for name, param in named_params if ".lbd" not in name],
-        },
-        {
-            "params": [param for name, param in named_params if ".lbd" in name],
-            "lr": train_config.lambda_lr,
-        },
-    ]
 
     if fsdp_config.pure_bf16 and fsdp_config.optimizer == "anyprecision":
         optimizer = AnyPrecisionAdamW(

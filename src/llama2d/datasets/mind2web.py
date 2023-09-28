@@ -1,32 +1,22 @@
 import json
 import os
-import shutil
-import subprocess
 from glob import glob
 from random import random
 from time import sleep
-from typing import Dict, List, Tuple
+from typing import Dict
 
 import torch
 from datasets import load_dataset
 from playwright.sync_api import sync_playwright
-from tqdm import tqdm
+from torch.utils.data import Dataset
 
-from ..constants import (
-    MIND2WEB_IN_DIR,
-    MIND2WEB_MHTML_DIR,
-    MIND2WEB_OUT_DIR,
-    MIND2WEB_VIZ_DIR,
-    SCREEN_RESOLUTION,
-)
-from ..tagging.add_tags_to_page import add_tags_to_webpage
-from ..vision.take_screenshot import take_screenshot
-from ..vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
-from .huggingface import DatasetInfo, publish_pt_dataset
+from src.llama2d.constants import MIND2WEB_MHTML_DIR, SCREEN_RESOLUTION
+from src.llama2d.datasets.huggingface import DatasetInfo, publish_pt_dataset
+from src.llama2d.tagging.add_tags_to_page import add_tags_to_webpage
+from src.llama2d.vision.take_screenshot import take_screenshot
+from src.llama2d.vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
 
 should_debug = False
-
-from torch.utils.data import Dataset
 
 
 class Mind2webDataset(Dataset):
@@ -98,7 +88,8 @@ class Mind2webDataset(Dataset):
             actions_str = "\n".join(task["action_reprs"])
             prompt = f"""
     You are a bot using a website. Your goal is: "{intention}"
-    {"So far, you have done the following actions: "+actions_str if len(actions_str) > 0 else ""}
+    {"So far, you have done the following actions: "
+     +actions_str if len(actions_str) > 0 else ""}
     The website looks like so:"""
 
             operation = action["operation"]
@@ -133,7 +124,9 @@ class Mind2webDataset(Dataset):
         print("mhtml count:", len(all_mhtmls))
 
         # extract the uid from *_before.mhtml
-        get_uid = lambda path: path.split("/")[-1].split("_")[0]
+        def get_uid(path):
+            return path.split("/")[-1].split("_")[0]
+
         return {get_uid(path): path for path in all_mhtmls}
 
 
@@ -142,7 +135,8 @@ mind2web_repo = "llama2d/llama2d-mind2web"
 if __name__ == "__main__":
     ds_info = DatasetInfo(
         repo=mind2web_repo,
-        desc="Llama2d Mind2Web dataset - SFT dataset for tag interaction on diverse websites",
+        desc="Llama2d Mind2Web dataset - SFT dataset for"
+        " tag interaction on diverse websites",
     )
 
     with sync_playwright() as playwright:

@@ -1,12 +1,9 @@
 from playwright.sync_api import sync_playwright
 from torch.utils.data import Dataset
 
-from llama2d.constants import PRETRAINING_CACHE_DIR
-from llama2d.datasets.cached import save_dataset
-
-from ..vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
-from .huggingface import DatasetInfo, publish_pt_dataset
-from .pretraining_urls import urls
+from src.data.pretraining_urls import urls
+from src.llama2d.datasets.huggingface import DatasetInfo, publish_pt_dataset
+from src.llama2d.vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
 
 
 class Llama2dPretrainingDataset(Dataset):
@@ -25,10 +22,13 @@ class Llama2dPretrainingDataset(Dataset):
 
             page.set_extra_http_headers(
                 {
-                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko)"
+                    " Chrome/116.0.0.0 Safari/537.36"
                 }
             )
-            # exceptional() is a function calling helper that returns None if the method errors.
+            # exceptional() is a function calling helper that returns
+            # None if the method errors.
             # we call all the functions
             self.extractions = [
                 exceptional(self.__extractor.create_inference_data, args=(page, "", i))
@@ -79,7 +79,8 @@ if __name__ == "__main__":
 
     ds_info = DatasetInfo(
         repo=pretraining_repo,
-        desc="Llama2d pretraining dataset - next-token prediction on real estate websites",
+        desc="Llama2d pretraining dataset - next-token prediction "
+        "on real estate websites",
     )
 
     dataset = Llama2dPretrainingDataset(

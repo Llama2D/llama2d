@@ -30,8 +30,8 @@ def add_tags_to_webpage(page, mind2web_action) -> Tuple[int, List[TagAndBox]]:
 
     raw_html = mind2web_action["raw_html"]
 
-    # print(f"Looking for element with class {cls} and id {tag_id} and bbox {bbox_rect}")
-    # print()
+    # print(f"Looking for element with class {cls}
+    # and id {tag_id} and bbox {bbox_rect}")
 
     curr_dir = os.path.dirname(os.path.realpath(__file__))
     with open(f"{curr_dir}/tagUtils.js", "r") as f:
@@ -44,7 +44,7 @@ def add_tags_to_webpage(page, mind2web_action) -> Tuple[int, List[TagAndBox]]:
         raise e
         raise Exception(f"Error evaluating:\n{to_eval}\n{e}")
 
-    assert type(gt_tag_id) == int, f"gt_tag_id is {json.dumps(gt_tag_id)}!"
+    assert isinstance(gt_tag_id, int), f"gt_tag_id is {json.dumps(gt_tag_id)}!"
 
     return gt_tag_id, [TagAndBox(**i) for i in el_tags]
 

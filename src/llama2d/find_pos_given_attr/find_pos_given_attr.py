@@ -1,5 +1,7 @@
-from pprint import pprint
+import json
 
+import requests
+from bs4 import BeautifulSoup
 from datasets import load_dataset
 
 # Load the Mind2Web dataset
@@ -9,11 +11,6 @@ example = dataset["train"][0]
 
 attrs = example["actions"][0]["pos_candidates"][0]["attributes"]
 
-
-import json
-
-import requests
-from bs4 import BeautifulSoup
 
 # URL of the webpage you want to scrape
 url = "http://example.com"

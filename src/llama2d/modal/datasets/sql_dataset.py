@@ -9,7 +9,9 @@ def format_text(row, tokenizer):
     text = (
         B_INST
         + B_SYS
-        + "You are an advanced SQL assistant that uses this SQL table schema to generate a SQL query which answers the user question.\n"
+        + "You are an advanced SQL assistant that uses this SQL table schema "
+        "to generate"
+        " a SQL query which answers the user question.\n"
         + row["context"]
         + E_SYS
         + row["question"]

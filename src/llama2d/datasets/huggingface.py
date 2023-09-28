@@ -1,14 +1,12 @@
-import subprocess
 import types
 from dataclasses import dataclass
 
-import numpy as np
 import torch
-from datasets import Dataset
+from datasets import Dataset, load_dataset
 from torch.utils import data
+from tqdm import tqdm
 
-#
-from llama2d.datasets.cached import CachedDataset
+from src.llama2d.datasets.cached import CachedDataset
 
 
 @dataclass
@@ -22,10 +20,12 @@ def dataset_dict_to_list(dataset_dict):
     Converts a Torch dataset stored as a dictionary to a list of dictionaries.
 
     Args:
-        dataset_dict (dict): The input dataset dictionary with keys 'input_ids', 'coords', 'labels', and 'attention_mask'.
+        dataset_dict (dict): The input dataset dictionary with keys 'input_ids',
+         'coords', 'labels', and 'attention_mask'.
 
     Returns:
-        list: A list of dictionaries where each dictionary contains values for the keys at each index.
+        list: A list of dictionaries where each dictionary contains
+         values for the keys at each index.
     """
     keys = dataset_dict.keys()
     num_samples = len(dataset_dict[list(keys)[0]])
@@ -50,9 +50,6 @@ def to(a, device: torch.device):
         return a
 
 
-from tqdm import tqdm
-
-
 def pt2hf(torch_dataset: data.Dataset, convert_type: types = torch.float32):
     torch_dataset = [el for el in tqdm(torch_dataset) if el is not None]
     if convert_type is not None:
@@ -69,20 +66,13 @@ def pt2hf(torch_dataset: data.Dataset, convert_type: types = torch.float32):
 
 
 def publish_pt_dataset(ds_pt, args):
-    try:
-        ds = pt2hf(ds_pt)  # may require setting: convert_type=np.float32
-        print(f"Dataset type:{ds}")
-        ds.info.description = args.desc
-        ds.set_format(type="torch", columns=list(ds[0].keys()))
-        ds.push_to_hub(args.repo)
-        print(f"Push succeeded.")
-    except Exception as e:
-        raise e
-        print(f"Exception while publishing: {e}")
+    ds = pt2hf(ds_pt)  # may require setting: convert_type=np.float32
+    print(f"Dataset type:{ds}")
+    ds.info.description = args.desc
+    ds.set_format(type="torch", columns=list(ds[0].keys()))
+    ds.push_to_hub(args.repo)
+    print("Push succeeded.")
 
-
-import torch
-from datasets import load_dataset
 
 dtypes = {
     "coords": torch.float16,
@@ -144,7 +134,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-D",
         "--desc",
-        default="Llama2D is a project from AGI UI/UX Hackathon. Check our main Git Repo at : https://github.com/Llama2D/llama2d/tree/main",
+        default="Llama2D is a project from AGI UI/UX Hackathon. Check our main"
+        " Git Repo at : https://github.com/Llama2D/llama2d/tree/main",
         type=str,
         help="Name of Repo",
     )

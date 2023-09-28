@@ -1,3 +1,4 @@
+# flake8: noqa
 from modal import Image, Secret, Stub, Volume
 
 N_GPUS = 2

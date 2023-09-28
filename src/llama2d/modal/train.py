@@ -6,7 +6,6 @@ from modal import Mount, Secret, gpu
 
 # add llama2d to path
 sys.path.append(f"{os.path.dirname(os.path.realpath(__file__))}/../../.")
-import llama2d
 
 
 @stub.function(
@@ -89,9 +88,6 @@ def train(train_kwargs):
     stub.results_volume.commit()
 
 
-import modal
-
-
 @stub.local_entrypoint()  # Runs locally to kick off remote training job.
 def main(
     dataset: str,
@@ -104,13 +100,11 @@ def main(
     peft: bool = True,
     repo: str = "llama2d/llama2d-mind2web",
 ):
-    import os
-
-    print(f"Welcome to Modal Llama fine-tuning.")
+    print("Welcome to Modal Llama fine-tuning.")
     print(f"Dataset is {dataset}.")
 
     # print(dict(Secret.from_name("huggingface").__dict__))
-    # os.environ["HUGGINGFACE_TOKEN"] = Secret.from_name("huggingface")["HUGGINGFACE_TOKEN"]
+    # os.environ["HUGGINGFACE_TOKEN"] = Secret.from_name("huggingface")["HUGGINGFACE_TOKEN"] # noqa
     # print(f"Huggingface API key is {os.environ['HUGGINGFACE_TOKEN']}.")
 
     model_name = BASE_MODELS[base]
@@ -139,9 +133,9 @@ def main(
             "custom_dataset.file": dataset,
             # --- FSDP options ---
             "enable_fsdp": True,
-            "low_cpu_fsdp": True,  # Optimization for FSDP model loading (RAM won't scale with num GPUs)
+            "low_cpu_fsdp": True,  # Optimization for FSDP model loading (RAM won't scale with num GPUs) # noqa
             "fsdp_config.use_fast_kernels": True,  # Only works when FSDP is on
-            "fsdp_config.fsdp_activation_checkpointing": True,  # Activation checkpointing for fsdp
+            "fsdp_config.fsdp_activation_checkpointing": True,  # Activation checkpointing for fsdp # noqa
             "pure_bf16": True,
             # --- Required for 70B ---
             "fsdp_config.fsdp_cpu_offload": True,

@@ -1,30 +1,21 @@
-import os
-
 from tqdm import tqdm
 
-from ..constants import (
-    MIND2WEB_HHTML_DIR,
-    MIND2WEB_IN_DIR,
-    MIND2WEB_MHTML_DIR,
-    MIND2WEB_OUT_DIR,
-    MIND2WEB_VIZ_DIR,
-    SCREEN_RESOLUTION,
-)
+from src.llama2d.constants import MIND2WEB_HHTML_DIR, MIND2WEB_MHTML_DIR
 
-mhtml_files = os.listdir(MIND2WEB_MHTML_DIR)
+mhtml_files = [f for f in MIND2WEB_MHTML_DIR.iterdir() if f.suffix == ".mhtml"]
+
 for mhtml_filename in tqdm(mhtml_files):
     # print(mhtml_filename)
-    mhtml_path = os.path.join(MIND2WEB_MHTML_DIR, mhtml_filename)
+    mhtml_path = MIND2WEB_MHTML_DIR / mhtml_filename
+    html_path = MIND2WEB_HHTML_DIR / mhtml_filename.with_suffix(".html")
 
-    hhtml_path = os.path.join(MIND2WEB_HHTML_DIR, mhtml_filename)
-    if os.path.exists(hhtml_path):
-        os.remove(hhtml_path)
+    if html_path.exists():
+        html_path.unlink()
 
     mhtml_content = open(mhtml_path, "r").read()
-
     hhtml_content = mhtml_content.replace(":hover", ".hvvvr")
 
-    with open(hhtml_path, "w") as f:
+    with open(html_path, "w") as f:
         f.write(hhtml_content)
 
 print("Done!")

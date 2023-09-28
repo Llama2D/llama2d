@@ -1,7 +1,7 @@
+import gdown
 import torch
 
-from llama2d.constants import PRETRAINING_CACHE_DIR
-from llama2d.datasets.cached import CachedDataset
+from src.llama2d.datasets.cached import CachedDataset
 
 
 def get_custom_dataset(dataset_config, tokenizer, split):
@@ -9,8 +9,6 @@ def get_custom_dataset(dataset_config, tokenizer, split):
     print(f"Using dataset folder {dataset_folder}")
 
     use_2d = dataset_config.use_2d
-
-    import gdown
 
     gdown.download(id="1bgbnuVQjhRku60gCLrFfqfM66bp0Z4sI")
     gdown.download(id="1LBT_gMNntS0mj-S8oTEWQE8pcJOIAXLA")

@@ -3,18 +3,22 @@ feature_extraction.py
 Extract features using the tokenizer, including text and image
 """
 
-import os
 import tempfile
+from pathlib import Path
 from typing import List, Optional
 
 import torch
 
+from src.llama2d.constants import (
+    MAX_PAGE_LEN,
+    MAX_SEQ_LEN,
+    MAX_TAGS_LEN,
+    SCREEN_RESOLUTION,
+)
+from src.llama2d.tagging.add_tags_to_page import TagAndBox
+from src.llama2d.vision.ocr import ImageAnnotator
+from src.llama2d.vision.take_screenshot import extract_domain, take_screenshot
 from transformers import LlamaTokenizer
-
-from ..constants import MAX_PAGE_LEN, MAX_SEQ_LEN, MAX_TAGS_LEN, SCREEN_RESOLUTION
-from ..tagging.add_tags_to_page import TagAndBox
-from .ocr import ImageAnnotator
-from .take_screenshot import extract_domain, take_screenshot
 
 
 class Llama2dWebsiteFeatureExtractor(object):
@@ -138,7 +142,11 @@ class Llama2dWebsiteFeatureExtractor(object):
 
         assert (
             len(input_ids) == len(label_ids) == len(input_coords) == len(attention_mask)
-        ), f"len(input_ids) = {len(input_ids)}, len(label_ids) = {len(label_ids)}, len(input_coords) = {len(input_coords)}, len(attention_mask) = {len(attention_mask)}"
+        ), (
+            f"len(input_ids) = {len(input_ids)}, len(label_ids) = {len(label_ids)},"
+            f" len(input_coords) = {len(input_coords)},"
+            f" len(attention_mask) = {len(attention_mask)}"
+        )
 
         # pad or truncate
         if len(input_ids) > MAX_SEQ_LEN:
@@ -147,7 +155,8 @@ class Llama2dWebsiteFeatureExtractor(object):
             input_coords = input_coords[:MAX_SEQ_LEN]
             attention_mask = attention_mask[:MAX_SEQ_LEN]
         elif len(input_ids) < MAX_SEQ_LEN:
-            # right-pad label_ids with -100, input_coords with (-1,-1), and input_ids with 0
+            # right-pad label_ids with -100,
+            # input_coords with (-1,-1), and input_ids with 0
             input_ids = torch.cat(
                 [input_ids, torch.zeros(MAX_SEQ_LEN - len(input_ids), dtype=torch.long)]
             )
@@ -188,7 +197,7 @@ class Llama2dWebsiteFeatureExtractor(object):
 
     def create_inference_data(self, page, prompt, uri):
         with tempfile.TemporaryDirectory() as tmpdir:
-            path = os.path.join(tmpdir, extract_domain(uri) + ".png")
+            path = Path(tmpdir) / extract_domain(uri) + ".png"
             # html = os.path.join(tmpdir, extract_domain(uri)+".mhtml")
 
             # driver = webdriver.Chrome()
@@ -200,8 +209,8 @@ class Llama2dWebsiteFeatureExtractor(object):
             take_screenshot(page=page, url=uri, save_path=path)
             return self.__process(prompt, path, "")
 
-    def from_training_data(self, page, html):
+    def from_training_data(self, page, html, uri):
         with tempfile.TemporaryDirectory() as tmpdir:
-            path = os.path.join(tmpdir, extract_domain(uri) + ".png")
+            path = Path(tmpdir) / extract_domain(uri) + ".png"
             prompt, label = take_screenshot(page=page, url=html, save_path=path)
             return self.__process(prompt, path, label)

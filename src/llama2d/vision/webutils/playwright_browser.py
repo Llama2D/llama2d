@@ -2,9 +2,6 @@ import nest_asyncio
 from langchain.agents import AgentType, initialize_agent
 from langchain.agents.agent_toolkits import PlayWrightBrowserToolkit
 from langchain.chat_models import ChatAnthropic
-from langchain.tools.playwright.utils import (
-    create_sync_playwright_browser,  # A synchronous browser is available, though it isn't compatible with jupyter.
-)
 from langchain.tools.playwright.utils import create_async_playwright_browser
 
 nest_asyncio.apply()
@@ -13,11 +10,14 @@ DEFAULT_STARTER_URL = {
 }
 
 
-def init_agent_chain(starter_url, llm):
+async def init_agent_chain(starter_url, llm):
     # tools
     toolkit = PlayWrightBrowserToolkit.from_browser(async_browser=async_browser)
     tools = toolkit.get_tools()
-    #
+    tools_by_name = {tool.name: tool for tool in tools}
+    navigate_tool = tools_by_name["navigate_browser"]
+    get_elements_tool = tools_by_name["get_elements"]  #
+
     await navigate_tool.arun(starter_url)
     # action
     # The browser is shared across tools, so the agent can interact in a stateful manner
@@ -34,7 +34,7 @@ def init_agent_chain(starter_url, llm):
     return agent_chain
 
 
-def run(agent_chain, prompt):
+async def run(agent_chain, prompt):
     result = await agent_chain.arun(prompt)
     return result
 

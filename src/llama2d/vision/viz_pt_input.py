@@ -1,20 +1,24 @@
 # use headless
 import matplotlib
 from matplotlib import pyplot as plt
+from playwright.sync_api import sync_playwright
+
+from src.llama2d.datasets.mind2web import Mind2webDataset
+from transformers import LlamaTokenizer
 
 matplotlib.use("Agg")
 
+# noqa
 """
 pytorch input is a dictionary of the form
 {
     "input_ids": [ids of the tokens, from 0 to vocab_size-1],
     "attention_mask": [0 for padding, 1 for non-padding],
     "coords": [x,y] for each token - normalized to [0,1] for tokens with coords, and (-1,-1) for tokens without coords
-    "labels": [ids of the tokens, from 0 to vocab_size-1] - same as input_ids, but with -100 for tokens that should not be predicted
+    "labels": [ids of the tokens, from 0 to vocab_size-1] - same as input_ids, but with -100 for tokens that should not be predicted # noqa
 }
 """
 
-from transformers import LlamaTokenizer
 
 model_path = "decapoda-research/llama-7b-hf"
 tokenizer = LlamaTokenizer.from_pretrained(model_path)
@@ -26,7 +30,7 @@ def viz_pt_input(pt_input):
     input_ids = pt_input["input_ids"]
     attention_mask = pt_input["attention_mask"]
     coords = pt_input["coords"]
-    labels = pt_input["labels"]
+    # labels = pt_input["labels"]
 
     # graph tokens with coords in a matplotlib figure
     # print the tokens without coords
@@ -45,7 +49,8 @@ def viz_pt_input(pt_input):
         for i in range(len(input_ids))
         if coords[i][0] != -1 and attention_mask[i] == 1
     ]
-    # split with_coords into words - where a word is a list of tokens with the same coord
+    # split with_coords into words -
+    # where a word is a list of tokens with the same coord
     words = []
     current_word = []
     current_coord = None
@@ -92,11 +97,6 @@ def viz_pt_input(pt_input):
     without_coords_str = "".join(tokenizer.convert_ids_to_tokens(without_coords))
     print(without_coords_str)
 
-
-from playwright.sync_api import sync_playwright
-
-from ..datasets.huggingface import HuggingFaceDataset
-from ..datasets.mind2web import Mind2webDataset
 
 if __name__ == "__main__":
     with sync_playwright() as playwright:

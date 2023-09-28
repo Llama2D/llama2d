@@ -1,5 +1,8 @@
 from common import BASE_MODELS, stub
-from modal import Mount, gpu
+from llama_recipes.configs.datasets import custom_dataset
+from llama_recipes.utils.config_utils import update_config
+from llama_recipes.utils.dataset_utils import get_custom_dataset
+from modal import Mount
 
 
 @stub.function(
@@ -12,10 +15,6 @@ from modal import Mount, gpu
     ],
 )
 def dataset(base: str = "chat7", dataset: str = "local_dataset.py"):
-    from llama_recipes.configs.datasets import custom_dataset
-    from llama_recipes.utils.config_utils import update_config
-    from llama_recipes.utils.dataset_utils import get_custom_dataset
-
     from transformers import AutoTokenizer
 
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODELS[base])

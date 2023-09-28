@@ -2,7 +2,7 @@ from urllib.parse import urlparse
 
 from playwright.sync_api import sync_playwright
 
-from ..constants import SCREEN_RESOLUTION
+from src.llama2d.constants import SCREEN_RESOLUTION
 
 width, height = SCREEN_RESOLUTION
 
@@ -16,7 +16,9 @@ def take_screenshot(page, url, save_path="image_of_website.png"):
 
             page.set_extra_http_headers(
                 {
-                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+                    " AppleWebKit/537.36 (KHTML, like Gecko)"
+                    " Chrome/116.0.0.0 Safari/537.36"
                 }
             )
 
