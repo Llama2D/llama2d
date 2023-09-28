@@ -84,6 +84,7 @@ dtypes = {
 class HuggingFaceDataset(torch.utils.data.Dataset):
     def __init__(self,repo:str,split:str):
         dataset = list(load_dataset(repo)["train"])
+        dataset = [d for d in dataset if d is not None and sum([1 for i in d["labels"] if i>0])>0]
 
         # split into train/val
         train_percent = 80

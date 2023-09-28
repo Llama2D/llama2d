@@ -84,7 +84,9 @@ from ..datasets.huggingface import HuggingFaceDataset
 if __name__ == "__main__":
 
     with sync_playwright() as playwright:
-        # dataset = HuggingFaceDataset("llama2d/llama2d-mind2web",split="train")
+        dataset = HuggingFaceDataset("llama2d/llama2d-mind2web",split="train")
+        for entry in dataset:
+            assert (entry["labels"]>0).any(), f"No labels in entry! {entry['labels'].tolist()}"
 
         dataset = Mind2webDataset(playwright=playwright,headless=False)
 

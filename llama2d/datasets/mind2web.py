@@ -56,6 +56,7 @@ class Mind2webDataset(Dataset):
         return len(self.actions)
     
     def __getitem__(self, index):
+        screenshot_path = None
         try:
             task_idx, action_idx = self.actions[index]
             task = self.dataset[task_idx]
@@ -114,6 +115,9 @@ class Mind2webDataset(Dataset):
         except Exception as e:
             # raise e
             print("Error in dataset:", e)
+
+            if screenshot_path is not None:
+                os.remove(screenshot_path)
             return None
 
 
@@ -138,7 +142,7 @@ if __name__ == "__main__":
         dataset = Mind2webDataset(playwright=playwright)
 
         # get a subset
-        num_samples = 300
-        dataset,_ = torch.utils.data.random_split(dataset, [num_samples, len(dataset) - num_samples])
+        # num_samples = 300
+        # dataset,_ = torch.utils.data.random_split(dataset, [num_samples, len(dataset) - num_samples])
 
         publish_pt_dataset(dataset, ds_info)

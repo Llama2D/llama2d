@@ -89,7 +89,7 @@ def main(
     batch_size: int = 16,
     use_2d: bool = True,
     ignore_pos_embeds: bool = False,
-    peft: bool = True,
+    peft: bool = False,
     repo: str = "llama2d/llama2d-mind2web",
 ):
     import os

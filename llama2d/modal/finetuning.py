@@ -269,6 +269,54 @@ def main(Llama,LlamaCfg,**kwargs):
             collate_fn=default_data_collator,
         )
 
+    def print_generations():
+
+        # broken right now
+        return
+
+        # if train_config.enable_fsdp and rank != 0:
+        #     print(f"Skipping generation on rank {rank}")
+        #     return
+
+        # show generations
+
+        num_samples = 5
+        rand_idxes = torch.randint(0, len(dataset_val), (num_samples,))
+        print("-----Sample generation-------")
+
+        for test_sample in range(num_samples):
+
+            # get a sample from the val dataset
+            test_sample = dataset_val[rand_idxes[test_sample]]
+
+            print("GT:")
+            print(tokenizer.decode(test_sample["input_ids"], skip_special_tokens=True))
+
+            # get last positive label idx
+            last_outputted_chunk_idx = torch.nonzero(test_sample["labels"] > 0)[-1].item() + 1
+            # get the first label idx of that chunk
+            first_idx_of_chunk = torch.nonzero(test_sample["labels"][:last_outputted_chunk_idx]<=0)[-1].item()+1
+
+            batched_sample = {k: v[None,:first_idx_of_chunk,...] for k, v in test_sample.items()}
+
+            assert batched_sample["input_ids"][0,-1] == 0, "input_ids for valid set must end with pad token"
+
+            # move to current device
+            batched_sample = {k: v.to("cuda") for k, v in batched_sample.items()}
+
+            print(batched_sample["input_ids"])
+
+            print("Generated:")
+            with torch.no_grad():
+                print(
+                    tokenizer.decode(
+                        model.generate(**batched_sample, max_new_tokens=100)[0],
+                        skip_special_tokens=True,
+                    )
+                )
+
+    print_generations()
+
     # Initialize the optimizer and learning rate scheduler
 
     named_params = list(model.named_parameters())
@@ -333,27 +381,7 @@ def main(Llama,LlamaCfg,**kwargs):
                 print(k,v.data)
     print("--------------------------------")
 
-    # show generations
-
-    num_samples = 5
-    rand_idxes = torch.randint(0,len(dataset_val),(num_samples,))
-    print("-----Sample generation-------")
-
-    for idx in rand_idxes:
-        val_sample = dataset_val[idx]
-        print("GT:")
-        print(tokenizer.decode(val_sample["input_ids"], skip_special_tokens=True))
-        batched_sample = {k: v[None,...] for k, v in val_sample.items()}
-
-
-        model.eval()
-        with torch.no_grad():
-            print(
-                tokenizer.decode(
-                    model.generate(**batched_sample, max_new_tokens=100)[0],
-                    skip_special_tokens=True,
-                )
-            )
+    print_generations()
 
     # print(raw_state_dict_keys)
     # print(full_params_state_dict_keys)
