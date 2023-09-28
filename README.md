@@ -4,7 +4,7 @@
 
 ```bash
 git clone https://github.com/llama2d/llama2d.git --recursive
-cd llama2d/transformers && pip install -e . && cd ..
+cd transformers && pip install -e . && cd ..
 pip install -r requirements.txt
 playwright install
 ```
@@ -139,3 +139,8 @@ modal run train.py --dataset hf_dataset.py --repo llama2d/llama2d-mind2web --no-
 ```
 
 `peft` is a synonym for LoRA. `hf_dataset` means we are using a dataset uploaded to Huggingface (thanks Matthew!). [`llama2d/llama2d-mind2web`](https://huggingface.co/datasets/llama2d/llama2d-mind2web/viewer/default/train?row=0) is the Huggingface repo containing the dataset.
+
+
+## In the Repo
+
+Run `black . --exclude '/transformers/|/venv/'` to format the code.
