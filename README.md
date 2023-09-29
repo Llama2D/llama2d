@@ -7,6 +7,7 @@ git clone https://github.com/llama2d/llama2d.git --recursive
 cd transformers && pip install -e . && cd ..
 pip install -r requirements.txt
 playwright install
+pre-commit install
 ```
 
 ## Secrets
