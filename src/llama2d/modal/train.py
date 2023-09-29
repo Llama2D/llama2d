@@ -5,7 +5,10 @@ from common import BASE_MODELS, GPU_MEM, N_GPUS, VOLUME_CONFIG, stub
 from modal import Mount, Secret, gpu
 
 # add llama2d to path
-sys.path.append(f"{os.path.dirname(os.path.realpath(__file__))}/../../.")
+llama2d_path = f"{os.path.dirname(os.path.realpath(__file__))}/../../."
+print(llama2d_path,os.listdir(llama2d_path))
+sys.path.append(llama2d_path)
+import llama2d
 
 
 @stub.function(

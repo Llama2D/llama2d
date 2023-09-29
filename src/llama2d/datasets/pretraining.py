@@ -5,7 +5,6 @@ from src.data.pretraining_urls import urls
 from llama2d.datasets.huggingface import DatasetInfo, publish_pt_dataset
 from llama2d.vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
 
-
 class Llama2dPretrainingDataset(Dataset):
     def __init__(
         self, model="decapoda-research/llama-7b-hf", urls=[], include_coords=True

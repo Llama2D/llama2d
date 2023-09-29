@@ -92,10 +92,13 @@ def viz_pt_input(pt_input):
 
     normal_str = "".join(tokenizer.convert_ids_to_tokens(input_ids))
     print(normal_str)
+    print()
 
     # as a str:
     without_coords_str = "".join(tokenizer.convert_ids_to_tokens(without_coords))
     print(without_coords_str)
+
+    print("<Open token_with_coords.png to see the screen>")
 
 from torch.utils.data import Dataset
 def debug_dataset(dataset:Dataset):
@@ -133,28 +136,4 @@ if __name__ == "__main__":
 
         dataset = Mind2webDataset(playwright=playwright, headless=False)
 
-        pt_input = None
-
-        i = 0
-        while i < len(dataset):
-            pt_input = dataset[i]
-            if pt_input is not None:
-                viz_pt_input(pt_input)
-                action = input("Continue? [y/n/debug/<int skip>]")
-                if action == "n":
-                    break
-                if action.startswith("d"):
-                    import pdb
-
-                    pdb.set_trace()
-                # check if action is an integer - then skip that many
-                if action.isdigit():
-                    print(f"Skipping {action}...")
-                    i += int(action)
-                    continue
-            i += 1
-
-        if pt_input is None:
-            raise Exception("Couldn't find a valid input!")
-
-        input("Press enter to close the figure")
+        debug_dataset(dataset)

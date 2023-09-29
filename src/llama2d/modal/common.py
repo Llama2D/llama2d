@@ -22,7 +22,10 @@ secrets_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../secrets/"
 data_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../data/"
 dataset_dir = f"{os.path.dirname(os.path.realpath(__file__))}/datasets/"
 
-fresh_build = True
+fresh_build = "4823"
+
+value_to_echo = str(random.random()) if fresh_build==True else fresh_build if type(fresh_build) == str else "0"
+
 import random
 
 image = (
@@ -50,7 +53,7 @@ image = (
         extra_index_url="https://download.pytorch.org/whl/nightly/cu118",
         pre=True,
     )
-    .run_commands(f"echo {random.random()}" if fresh_build else "echo 0.0")
+    .run_commands(f"echo {value_to_echo}")
     .run_commands(
         "pip install 'llama-recipes @ git+https://github.com/llama2d/llama-recipes.git@andrew-dev' git+https://github.com/llama2d/transformers.git@overwriting-llama --no-deps"
     )
