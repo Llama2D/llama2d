@@ -144,6 +144,8 @@ modal run train.py --dataset hf_dataset.py --repo src/llama2d/llama2d-mind2web -
 
 ## In the Repo
 
+To add a requirement, add it to `requirements.in`, run `pip-compile`, and run `pip-sync`.
+
 Run `black . --exclude '/transformers/|/venv/'` to format the code.
 
 Pre-commit hooks are used to maintain code quality.

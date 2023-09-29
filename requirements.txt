@@ -46,6 +46,8 @@ certifi==2023.7.22
     #   requests
     #   selenium
     #   sentry-sdk
+cfgv==3.4.0
+    # via pre-commit
 charset-normalizer==3.2.0
     # via
     #   aiohttp
@@ -69,6 +71,8 @@ dill==0.3.7
     # via
     #   datasets
     #   multiprocess
+distlib==0.3.7
+    # via virtualenv
 docker-pycreds==0.4.0
     # via wandb
 faiss-cpu==1.7.4
@@ -81,6 +85,7 @@ filelock==3.12.4
     #   huggingface-hub
     #   torch
     #   transformers
+    #   virtualenv
 fonttools==4.42.1
     # via matplotlib
 frozenlist==1.4.0
@@ -131,6 +136,8 @@ huggingface-hub[cli,torch]==0.17.3
     #   transformers
 hyperframe==6.0.1
     # via h2
+identify==2.5.29
+    # via pre-commit
 idna==3.4
     # via
     #   anyio
@@ -180,6 +187,8 @@ nest-asyncio==1.5.8
     # via -r requirements.in
 networkx==3.1
     # via torch
+nodeenv==1.8.0
+    # via pre-commit
 numexpr==2.8.7
     # via langchain
 numpy==1.26.0
@@ -217,7 +226,11 @@ pillow==10.0.1
     # via
     #   -r requirements.in
     #   matplotlib
+platformdirs==3.10.0
+    # via virtualenv
 playwright==1.38.0
+    # via -r requirements.in
+pre-commit==3.4.0
     # via -r requirements.in
 prompt-toolkit==3.0.39
     # via inquirerpy
@@ -275,6 +288,7 @@ pyyaml==6.0.1
     #   huggingface-hub
     #   langchain
     #   peft
+    #   pre-commit
     #   transformers
     #   wandb
 regex==2023.8.8
@@ -389,6 +403,8 @@ urllib3[socks]==2.0.5
     #   requests
     #   selenium
     #   sentry-sdk
+virtualenv==20.24.5
+    # via pre-commit
 wandb==0.15.11
     # via -r requirements.in
 watchfiles==0.20.0
