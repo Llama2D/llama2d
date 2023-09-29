@@ -152,7 +152,7 @@ def main(
             "ignore_pos_embeds": ignore_pos_embeds,
             # make peft hopefully make coords tunable
             "label_names": ["coords"],
-            "keep_fraction": 1.0,
+            "keep_fraction": 0.25,
             "dataset_folder": "mind2web-cache",
             "repo": repo,
         }

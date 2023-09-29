@@ -1,7 +1,7 @@
 # flake8: noqa
 from modal import Image, Secret, Stub, Volume
 
-N_GPUS = 2
+N_GPUS = 1
 GPU_MEM = 80
 BASE_MODELS = {
     "base7": "meta-llama/Llama-2-7b-hf",
