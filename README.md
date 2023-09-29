@@ -31,7 +31,7 @@ Specifically, the entire page is converted into tokens, and every token is given
 
 The model is trained to predict the next token. It is NOT trained to predict the next token's position.
 
-This dataset is implemented in [`llama2d/datasets/pretraining.py`](llama2d/pretraining.py).
+This dataset is implemented in [`llama2d/datasets/pretraining.py`](https://github.com/Llama2D/llama2d/blob/main/src/llama2d/datasets/pretraining.py).
 
 To download and cache this dataset, run the pretraining file:
 
