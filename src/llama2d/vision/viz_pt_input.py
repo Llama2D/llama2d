@@ -3,7 +3,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 from playwright.sync_api import sync_playwright
 
-from src.llama2d.datasets.mind2web import Mind2webDataset
+from llama2d.datasets.mind2web import Mind2webDataset
 from transformers import LlamaTokenizer
 
 matplotlib.use("Agg")
@@ -97,6 +97,33 @@ def viz_pt_input(pt_input):
     without_coords_str = "".join(tokenizer.convert_ids_to_tokens(without_coords))
     print(without_coords_str)
 
+from torch.utils.data import Dataset
+def debug_dataset(dataset:Dataset):
+    pt_input = None
+
+    action = None
+    i = 0
+    while i < len(dataset):
+        pt_input = dataset[i]
+        if pt_input is not None:
+            viz_pt_input(pt_input)
+            action = input("Continue? [y/n/debug/<int skip>]")
+            if action == "n":
+                break
+            if action.startswith("d"):
+                import pdb
+
+                pdb.set_trace()
+            # check if action is an integer - then skip that many
+            if action.isdigit():
+                print(f"Skipping {action}...")
+                i += int(action)
+                continue
+        i += 1
+    
+    assert pt_input is not None,"Didn't find any valid dataset entries!"
+    if action != "n":
+        input("Dataset has ended. Press enter to continue program.")
 
 if __name__ == "__main__":
     with sync_playwright() as playwright:

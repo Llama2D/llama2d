@@ -1,9 +1,9 @@
-from dataclasses import dataclass
-from typing import List, Tuple
+from dataclasses import dataclass,replace,field
+from typing import List, Tuple, Self,Optional
 
 from google.cloud import vision
 
-from src.llama2d.constants import SCREEN_RESOLUTION, SECRETS_FILE
+from llama2d.constants import SCREEN_RESOLUTION, SECRETS_FILE
 
 
 @dataclass
@@ -16,13 +16,74 @@ class ImageAnnotation:
 
 
 @dataclass
-class ImageAnnotatorResponse:
-    full_text: str  # full text
+class Llama2dScreen:
+    full_text: str=""  # full text
     orig_text_dims: Tuple[
         float, float
-    ]  # the dimension of the *TEXT PORTION* of the image
+    ]=(1.,1.)  # the dimension of the *TEXT PORTION* of the image
 
-    words: List[ImageAnnotation]  # a list of words and their midpoints
+    words: List[ImageAnnotation]=field(default_factory=list)  # a list of words and their midpoints
+
+    def __add__(self,other:Self)->Self:
+        assert self.orig_text_dims == other.orig_text_dims
+        return replace(self,words=self.words+other.words)
+    
+    def push_word(
+            self,
+            word:str,
+
+            # must use exactly one
+            # all 4 corners
+            xyxy:Optional[Tuple[float,float,float,float]]=None,
+            # midpoint
+            xy:Optional[Tuple[float,float,float,float]]=None,
+        ):
+        new = self.concat_word(word=word,xyxy=xyxy,xy=xy)
+
+        self.words = new.words
+        self.full_text = new.full_text
+    
+    def concat_word(
+        self,
+        word:str,
+
+        # must use exactly one
+        # all 4 corners
+        xyxy:Optional[Tuple[float,float,float,float]]=None,
+        # midpoint
+        xy:Optional[Tuple[float,float,float,float]]=None,
+
+    ):
+        full_text = self.full_text
+        words = self.words
+
+        if len(words) > 0:
+            full_text += " "
+        full_text+=word
+
+        assert (xyxy is None) != (xy is None),"You should specify xy (midpoint) xor xyxy (corners)."
+        if xy is None:
+            x = (xyxy[0] + xyxy[2]) / 2
+            y = (xyxy[1] + xyxy[3]) / 2
+            xy = (x,y)
+
+        x,y = xy
+        w,h = self.orig_text_dims
+        xy_norm = (x/w,y/h)
+
+        new_ann = ImageAnnotation(text=word,midpoint=xy,midpoint_normalized=xy_norm)
+        words = words+[new_ann]
+
+
+        return replace(self,words=words,full_text=full_text)
+    
+    def __getitem__(self,key:slice):
+        assert type(key)==slice,"__getitem__ only supports slice right now"
+        words = self.words[key]
+
+        full_text = " ".join(words)
+
+        return replace(self,words=words,full_text=full_text)
 
 
 width, height = SCREEN_RESOLUTION
@@ -49,42 +110,23 @@ class ImageAnnotator:
         full_text = res.full_text_annotation.text
 
         annotations = res.text_annotations
-        whole_text_box_max = annotations[0].bounding_poly.vertices[
-            2
-        ]  # slice out entire body of text
-        max_width = whole_text_box_max.x
-        max_height = whole_text_box_max.y
 
-        annotations_normed = []
+        annotations_normed = Llama2dScreen(
+            full_text=full_text,
+            orig_text_dims=SCREEN_RESOLUTION,
+        )
         for text in annotations[1:]:
-            box = text.bounding_poly.vertices
-
-            # midpoint: average position betwen
-            # the upper left location and lower
-            # right position
-            midpoint = ((box[2].x + box[0].x) / 2, (box[2].y + box[0].y) / 2)
-
-            annotations_normed.append(
-                ImageAnnotation(
-                    text=text.description,
-                    midpoint=midpoint,
-                    midpoint_normalized=(
-                        midpoint[0] / width,
-                        midpoint[1] / height,
-                    ),
-                )
+            annotations_normed.push_word(
+                word=text.description,
+                xyxy=text.bounding_poly.vertices
             )
 
-        annotations_normed = list(
+        # optionally, sort the words by midpoint
+        annotations_normed.words = list(
             sorted(
-                annotations_normed,
+                annotations_normed.words,
                 key=lambda x: (x.midpoint_normalized[1], x.midpoint_normalized[0]),
             )
         )
-        response = ImageAnnotatorResponse(
-            full_text=full_text,
-            orig_text_dims=(max_width, max_height),
-            words=annotations_normed,
-        )
 
-        return response
+        return annotations_normed

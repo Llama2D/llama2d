@@ -10,11 +10,11 @@ from datasets import load_dataset
 from playwright.sync_api import sync_playwright
 from torch.utils.data import Dataset
 
-from src.llama2d.constants import MIND2WEB_MHTML_DIR, SCREEN_RESOLUTION
-from src.llama2d.datasets.huggingface import DatasetInfo, publish_pt_dataset
-from src.llama2d.tagging.add_tags_to_page import add_tags_to_webpage
-from src.llama2d.vision.take_screenshot import take_screenshot
-from src.llama2d.vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
+from llama2d.constants import MIND2WEB_MHTML_DIR, SCREEN_RESOLUTION
+from llama2d.datasets.huggingface import DatasetInfo, publish_pt_dataset
+from llama2d.tagging.add_tags_to_page import add_tags_to_webpage
+from llama2d.vision.take_screenshot import take_screenshot
+from llama2d.vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
 
 should_debug = False
 
@@ -146,10 +146,12 @@ if __name__ == "__main__":
     with sync_playwright() as playwright:
         dataset = Mind2webDataset(playwright=playwright)
 
-        # get a subset
+        # publish a subset
         num_samples = 300
-        dataset, _ = torch.utils.data.random_split(
-            dataset, [num_samples, len(dataset) - num_samples]
-        )
+
+        if num_samples is not None:
+            dataset, _ = torch.utils.data.random_split(
+                dataset, [num_samples, len(dataset) - num_samples]
+            )
 
         publish_pt_dataset(dataset, ds_info)

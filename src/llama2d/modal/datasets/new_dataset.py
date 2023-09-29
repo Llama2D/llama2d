@@ -1,4 +1,4 @@
-from src.llama2d.datasets.pretraining import Llama2dPretrainingDataset
+from llama2d.datasets.pretraining import Llama2dPretrainingDataset
 
 
 def format_text(row, tokenizer):

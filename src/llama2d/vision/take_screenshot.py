@@ -2,7 +2,7 @@ from urllib.parse import urlparse
 
 from playwright.sync_api import sync_playwright
 
-from src.llama2d.constants import SCREEN_RESOLUTION
+from llama2d.constants import SCREEN_RESOLUTION
 
 width, height = SCREEN_RESOLUTION
 

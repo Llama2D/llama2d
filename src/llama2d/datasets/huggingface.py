@@ -59,13 +59,13 @@ def pt2hf(torch_dataset: data.Dataset,
     import pdb; pdb.set_trace()
   return dset_hf
 
-def publish_pt_dataset(ds_pt, args):
+def publish_pt_dataset(ds_pt, dataset_info):
   try:
     ds = pt2hf(ds_pt)   # may require setting: convert_type=np.float32
     print(f"Dataset type:{ds}")
-    ds.info.description = args.desc
+    ds.info.description = dataset_info.desc
     ds.set_format(type='torch', columns=list(ds[0].keys()))
-    ds.push_to_hub(args.repo)
+    ds.push_to_hub(dataset_info.repo)
     print(f"Push succeeded.")
   except Exception as e:
       raise e

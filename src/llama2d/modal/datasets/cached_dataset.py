@@ -1,7 +1,7 @@
 import gdown
 import torch
 
-from src.llama2d.datasets.cached import CachedDataset
+from llama2d.datasets.cached import CachedDataset
 
 
 def get_custom_dataset(dataset_config, tokenizer, split):

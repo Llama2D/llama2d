@@ -4,6 +4,8 @@ data/*
 node_modules
 secrets/*
 
+*.png
+
 # Created by https://www.toptal.com/developers/gitignore/api/python,venv,virtualenv,dotenv,visualstudiocode,pycharm+all,windows,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,venv,virtualenv,dotenv,visualstudiocode,pycharm+all,windows,macos
 

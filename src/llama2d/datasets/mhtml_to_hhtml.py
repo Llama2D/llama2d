@@ -1,6 +1,6 @@
 from tqdm import tqdm
 
-from src.llama2d.constants import MIND2WEB_HHTML_DIR, MIND2WEB_MHTML_DIR
+from llama2d.constants import MIND2WEB_HHTML_DIR, MIND2WEB_MHTML_DIR
 
 mhtml_files = [f for f in MIND2WEB_MHTML_DIR.iterdir() if f.suffix == ".mhtml"]
 
