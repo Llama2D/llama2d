@@ -93,7 +93,11 @@ def main(Llama, LlamaCfg, **kwargs):
 
     # pin_lbd means "pin the lambda gate parameter to 0"
     # when you pin lambda to zero, you get the same behavior as llama
-    kwargs = {"pin_lbd": ignore_pos_embeds, "use_2d": use_2d} if use_2d else {}
+    kwargs = {
+        "pin_lbd": ignore_pos_embeds,
+        "use_2d": use_2d,
+        "lbd_start_value":train_config.lbd_start_value
+    } if use_2d else {}
 
     # Load the pre-trained model and setup its configuration
     use_cache = False if train_config.enable_fsdp else None
@@ -126,6 +130,7 @@ def main(Llama, LlamaCfg, **kwargs):
 
             llama_config.use_2d = use_2d
             llama_config.pin_lbd = ignore_pos_embeds
+            llama_config.lbd_start_value = train_config.lbd_start_value
 
             with torch.device("meta"):
                 model = Llama(llama_config)

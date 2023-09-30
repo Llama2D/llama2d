@@ -6,6 +6,7 @@ from modal import Mount, Secret, gpu
 
 # add llama2d to path
 sys.path.append(f"{os.path.dirname(os.path.realpath(__file__))}/../../.")
+import llama2d
 
 
 @stub.function(
@@ -149,9 +150,11 @@ def main(
             "ignore_pos_embeds": ignore_pos_embeds,
             # make peft hopefully make coords tunable
             "label_names": ["coords"],
-            "keep_fraction": 1.0,
+            "keep_fraction": 0.1,
             "dataset_folder": "mind2web-cache",
             "repo": repo,
+
+            "lbd_start_value":1e-4
         }
     )
 
