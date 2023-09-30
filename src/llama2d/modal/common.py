@@ -22,7 +22,7 @@ secrets_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../secrets/"
 data_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../data/"
 dataset_dir = f"{os.path.dirname(os.path.realpath(__file__))}/datasets/"
 
-fresh_build = "4823"
+fresh_build = "fdsionew"
 
 value_to_echo = str(random.random()) if fresh_build==True else fresh_build if type(fresh_build) == str else "0"
 

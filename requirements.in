@@ -19,3 +19,4 @@ torch
 nest-asyncio
 gdown
 peft
+pre-commit
