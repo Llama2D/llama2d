@@ -82,7 +82,14 @@ dtypes = {
 }
 
 class HuggingFaceDataset(torch.utils.data.Dataset):
-    def __init__(self,repo:str,split:str,keep_fraction:float=1.0):
+    def __init__(
+          self,
+          repo:str,
+          split:str,
+          keep_fraction:float=1.0,
+          use_2d=True,
+        ):
+
         dataset = list(load_dataset(repo)["train"])
         dataset = [d for d in dataset if d is not None and sum([1 for i in d["labels"] if i>0])>0]
 
@@ -96,12 +103,17 @@ class HuggingFaceDataset(torch.utils.data.Dataset):
         train_dataset,val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
 
         self.dataset = train_dataset if split == "train" else val_dataset
+
+        self.use_2d = use_2d
     
     def __getitem__(self, index):
         hf_dict = self.dataset[index]
 
         # convert to torch tensors
         ret = {k:torch.tensor(v,dtype=dtypes[k]) for k,v in hf_dict.items()}
+
+        if not self.use_2d:
+           del ret["coords"]
 
         return ret
 
