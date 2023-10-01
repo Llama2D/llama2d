@@ -53,6 +53,7 @@ image = (
         extra_index_url="https://download.pytorch.org/whl/nightly/cu118",
         pre=True,
     )
+    .pip_install("matplotlib")
     .run_commands(f"echo {value_to_echo}")
     .run_commands(
         "pip install 'llama-recipes @ git+https://github.com/llama2d/llama-recipes.git@andrew-dev' git+https://github.com/llama2d/transformers.git@overwriting-llama --no-deps"

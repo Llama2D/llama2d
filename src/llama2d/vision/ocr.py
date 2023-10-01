@@ -1,5 +1,5 @@
 from dataclasses import dataclass,replace,field
-from typing import List, Tuple, Self,Optional
+from typing import List, Tuple, Optional
 
 from google.cloud import vision
 
@@ -24,7 +24,7 @@ class Llama2dScreen:
 
     words: List[ImageAnnotation]=field(default_factory=list)  # a list of words and their midpoints
 
-    def __add__(self,other:Self)->Self:
+    def __add__(self,other):
         assert self.orig_text_dims == other.orig_text_dims
         return replace(self,words=self.words+other.words)
     

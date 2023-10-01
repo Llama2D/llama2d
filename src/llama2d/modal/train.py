@@ -5,9 +5,7 @@ from common import BASE_MODELS, GPU_MEM, N_GPUS, VOLUME_CONFIG, stub
 from modal import Mount, Secret, gpu
 
 # add llama2d to path
-llama2d_path = f"{os.path.dirname(os.path.realpath(__file__))}/../../."
-print(llama2d_path,os.listdir(llama2d_path))
-sys.path.append(llama2d_path)
+sys.path.append(f"{os.path.dirname(os.path.realpath(__file__))}/../../.")
 import llama2d
 
 
@@ -101,7 +99,12 @@ def main(
     use_2d: bool = True,
     ignore_pos_embeds: bool = False,
     peft: bool = False,
+
     repo: str = "llama2d/llama2d-mind2web",
+    lbd_start_value:float=0.0,
+    lr:float=3e-5,
+    lambda_lr:float=3e-4,
+    keep_fraction:float=1.0,
 ):
     print("Welcome to Modal Llama fine-tuning.")
     print(f"Dataset is {dataset}.")
@@ -127,8 +130,8 @@ def main(
             "model_name": BASE_MODELS[base],
             "output_dir": f"/results/{run_id}",
             "batch_size_training": batch_size,
-            "lr": 3e-5,
-            "lambda_lr": 3e-4,
+            "lr": lr,
+            "lambda_lr": lambda_lr,
             "num_epochs": num_epochs,
             "val_batch_size": 1,
             # --- Dataset options ---
@@ -148,13 +151,17 @@ def main(
             "peft_method": "lora",
             "lora_config.r": 8,
             "lora_config.lora_alpha": 16,
+
+            # --- Llama2D options ---
+            "label_names": ["coords"],
+            "dataset_folder": "mind2web-cache",
+
             "use_2d": use_2d,
             "ignore_pos_embeds": ignore_pos_embeds,
-            # make peft hopefully make coords tunable
-            "label_names": ["coords"],
-            "keep_fraction": 0.25,
-            "dataset_folder": "mind2web-cache",
+            "keep_fraction": keep_fraction,
             "repo": repo,
+            "lbd_start_value":lbd_start_value
+
         }
     )
 

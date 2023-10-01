@@ -83,7 +83,14 @@ dtypes = {
 
 from time import time
 class HuggingFaceDataset(torch.utils.data.Dataset):
-    def __init__(self,repo:str,split:str,cache_dir:str=None):
+    def __init__(
+          self,
+          repo:str,
+          split:str,
+          cache_dir:str=None,
+          keep_fraction:float=1.0,
+          use_2d:bool=True
+        ):
         assert cache_dir is not None,"cache_dir must be specified"
         print("Loading dataset...")
         start_time = time()
@@ -107,6 +114,9 @@ class HuggingFaceDataset(torch.utils.data.Dataset):
         dataset = hf_dataset["train"] \
           .filter(has_positive_label)
 
+        # keep only a fraction of the dataset
+        dataset = dataset[:int(len(dataset)*keep_fraction)]
+
         # split into train/val
         train_percent = 80
         train_size = int(len(dataset)*train_percent/100)
@@ -114,12 +124,17 @@ class HuggingFaceDataset(torch.utils.data.Dataset):
         train_dataset,val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
 
         self.dataset = train_dataset if split == "train" else val_dataset
+
+        self.use_2d = use_2d
     
     def __getitem__(self, index):
         hf_dict = self.dataset[index]
 
         # convert to torch tensors
         ret = {k:torch.tensor(v,dtype=dtypes[k]) for k,v in hf_dict.items()}
+
+        if not self.use_2d:
+           del ret["coords"]
 
         return ret
 
