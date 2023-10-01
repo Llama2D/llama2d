@@ -97,8 +97,8 @@ class HuggingFaceDataset(torch.utils.data.Dataset):
 
         def has_positive_label(d):
           # short-circuit evaluation
-          for i in d["labels"]:
-            if i>0:
+          for i,label_id in enumerate(d["labels"]):
+            if label_id>0:
               return True
             if d["attention_mask"][i]==0:
               # assume padding tokens are at the end
