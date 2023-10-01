@@ -90,6 +90,8 @@ def main(Llama, LlamaCfg, **kwargs):
     )
     if not train_config.enable_fsdp or rank == 0:
         print(f"--> Validation Set Length = {len(dataset_val)}")
+    
+
 
     # pin_lbd means "pin the lambda gate parameter to 0"
     # when you pin lambda to zero, you get the same behavior as llama

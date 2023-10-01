@@ -22,7 +22,7 @@ secrets_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../secrets/"
 data_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../data/"
 dataset_dir = f"{os.path.dirname(os.path.realpath(__file__))}/datasets/"
 
-fresh_build = "fdsionew"
+fresh_build = "0.0.3 add hf cache dir - on main"
 
 value_to_echo = str(random.random()) if fresh_build==True else fresh_build if type(fresh_build) == str else "0"
 
@@ -71,6 +71,8 @@ stub = Stub(
     secrets=[Secret.from_name("huggingface"), Secret.from_name("wandb")],
 )
 
+stub.hf_cache_volume = Volume.persisted("hf-cache")
+
 # Download pre-trained models into this volume.
 stub.pretrained_volume = Volume.persisted("example-pretrained-vol")
 
@@ -80,4 +82,5 @@ stub.results_volume = Volume.persisted("example-results-vol")
 VOLUME_CONFIG = {
     "/pretrained": stub.pretrained_volume,
     "/results": stub.results_volume,
+    "/hf_cache": stub.hf_cache_volume,
 }
