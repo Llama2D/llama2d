@@ -81,10 +81,21 @@ dtypes = {
     "attention_mask":torch.int64,
 }
 
+from time import time
 class HuggingFaceDataset(torch.utils.data.Dataset):
-    def __init__(self,repo:str,split:str):
-        dataset = list(load_dataset(repo)["train"])
-        dataset = [d for d in dataset if d is not None and sum([1 for i in d["labels"] if i>0])>0]
+    def __init__(self,repo:str,split:str,cache_dir:str=None):
+        assert cache_dir is not None,"cache_dir must be specified"
+        print("Loading dataset...")
+        start_time = time()
+
+        import os
+        print(cache_dir,os.listdir(cache_dir))
+        hf_dataset = load_dataset(repo,cache_dir=cache_dir)
+        
+        print(f"Loaded dataset in {time()-start_time} seconds.")
+        # dataset = [d for d in dataset if d is not None and sum([1 for i in d["labels"] if i>0])>0]
+        dataset = hf_dataset["train"] \
+          .filter(lambda d: sum([1 for i in d["labels"] if i>0])>0)
 
         # split into train/val
         train_percent = 80
