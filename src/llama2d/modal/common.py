@@ -19,13 +19,25 @@ BASE_MODELS = {
 import os
 import random
 
-secrets_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../secrets/"
-data_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../data/"
-dataset_dir = f"{os.path.dirname(os.path.realpath(__file__))}/datasets/"
+own_dir = os.path.dirname(os.path.realpath(__file__))
+root_dir = f"{own_dir}/../../.."
 
-fresh_build = "0.0.12 Re-add wandb"
+secrets_dir = f"{root_dir}/secrets/"
+data_dir = f"{root_dir}/data/"
+dataset_dir = f"{own_dir}/datasets/"
 
-value_to_echo = str(random.random()) if fresh_build==True else fresh_build if type(fresh_build) == str else "0"
+transformers_dir = f"{root_dir}/transformers"
+llama_recipes_dir = f"{root_dir}/llama-recipes"
+
+if os.path.exists(transformers_dir) and os.path.exists(llama_recipes_dir):
+    import os
+    transformers_commit = os.popen(f"cd {transformers_dir} && git rev-parse HEAD").read().strip()
+    llama_recipes_commit = os.popen(f"cd {llama_recipes_dir} && git rev-parse HEAD").read().strip()
+else:
+    transformers_commit = "overwriting-llama"
+    llama_recipes_commit = "andrew-dev"
+
+print(f"Transformers commit: {transformers_commit}, llama-recipes commit: {llama_recipes_commit}")
 
 import random
 
@@ -48,16 +60,15 @@ image = (
         "playwright",
         "wandb",
         "transformers",
+        "matplotlib"
     )
     .pip_install(
         f"llama-recipes @ git+https://github.com/modal-labs/llama-recipes.git",
         extra_index_url="https://download.pytorch.org/whl/nightly/cu118",
         pre=True,
     )
-    .pip_install("matplotlib")
-    .run_commands(f"echo {value_to_echo}")
     .run_commands(
-        "pip install 'llama-recipes @ git+https://github.com/llama2d/llama-recipes.git@andrew-dev' git+https://github.com/llama2d/transformers.git@overwriting-llama --no-deps"
+        f"pip install 'llama-recipes @ git+https://github.com/llama2d/llama-recipes.git@{llama_recipes_commit}' git+https://github.com/llama2d/transformers.git@{transformers_commit} --no-deps"
     )
     .env(dict(HUGGINGFACE_HUB_CACHE="/pretrained", HF_HUB_ENABLE_HF_TRANSFER="1"))
     .copy_local_dir(secrets_dir, "/root/secrets")
