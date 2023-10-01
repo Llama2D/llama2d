@@ -22,8 +22,8 @@ class CachedDataset(Dataset):
 
     def __getitem__(self, i):
         ret = torch.load(self.files[i])
-        if not self.use_2d:
-            return {k: v for k, v in ret.items() if k != "coords"}
+        # if not self.use_2d:
+        #     return {k: v for k, v in ret.items() if k != "coords"}
         return {k: v.to(torch.bfloat16) if k == "coords" else v for k, v in ret.items()}
 
     def __len__(self):

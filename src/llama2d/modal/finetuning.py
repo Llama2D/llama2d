@@ -99,7 +99,7 @@ def main(Llama, LlamaCfg, **kwargs):
         "pin_lbd": ignore_pos_embeds,
         "use_2d": use_2d,
         "lbd_start_value":train_config.lbd_start_value
-    } if use_2d else {}
+    }# if use_2d else {}
 
     # Load the pre-trained model and setup its configuration
     use_cache = False if train_config.enable_fsdp else None
@@ -187,11 +187,11 @@ def main(Llama, LlamaCfg, **kwargs):
             print("--------IGNORE POS EMBEDS IS FALSE--------")
             for k, v in model.named_parameters():
                 if k.endswith(".lbd"):
-                    v.requires_grad = v.data.requires_grad = use_2d and not ignore_pos_embeds
+                    v.requires_grad = True
                     print(k, "requires_grad=", v.requires_grad, v)
 
         trainable_params_after, _ = model.get_nb_trainable_parameters()
-        assert (use_2d and not ignore_pos_embeds) == (
+        assert (
             trainable_params_after > trainable_params_before
         ), (
             "Looks like lambda gating parameter isn't marked as trainable."

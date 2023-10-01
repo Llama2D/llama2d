@@ -114,8 +114,8 @@ class HuggingFaceDataset(torch.utils.data.Dataset):
         # convert to torch tensors
         ret = {k:torch.tensor(v,dtype=dtypes[k]) for k,v in hf_dict.items()}
 
-        if not self.use_2d:
-           del ret["coords"]
+        # if not self.use_2d:
+        #    del ret["coords"]
 
         return ret
 

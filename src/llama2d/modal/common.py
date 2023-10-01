@@ -23,7 +23,7 @@ secrets_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../secrets/"
 data_dir = f"{os.path.dirname(os.path.realpath(__file__))}/../../data/"
 dataset_dir = f"{os.path.dirname(os.path.realpath(__file__))}/datasets/"
 
-fresh_build = "0.0.7 comment out errs"
+fresh_build = "0.0.11 Remove logging"
 
 value_to_echo = str(random.random()) if fresh_build==True else fresh_build if type(fresh_build) == str else "0"
 
