@@ -105,6 +105,7 @@ def main(
     lr:float=3e-5,
     lambda_lr:float=3e-4,
     keep_fraction:float=1.0,
+    seed:int=0,
 ):
     print("Welcome to Modal Llama fine-tuning.")
     print(f"Dataset is {dataset}.")
@@ -160,7 +161,8 @@ def main(
             "ignore_pos_embeds": ignore_pos_embeds,
             "keep_fraction": keep_fraction,
             "repo": repo,
-            "lbd_start_value":lbd_start_value
+            "lbd_start_value":lbd_start_value,
+            "seed":seed,
 
         }
     )
