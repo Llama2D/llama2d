@@ -97,7 +97,6 @@ def main(
     num_epochs: int = 10,
     batch_size: int = 16,
     use_2d: bool = True,
-    ignore_pos_embeds: bool = False,
     peft: bool = False,
 
     repo: str = "llama2d/llama2d-mind2web",
@@ -158,7 +157,6 @@ def main(
             "dataset_folder": "mind2web-cache",
 
             "use_2d": use_2d,
-            "ignore_pos_embeds": ignore_pos_embeds,
             "keep_fraction": keep_fraction,
             "repo": repo,
             "lbd_start_value":lbd_start_value,

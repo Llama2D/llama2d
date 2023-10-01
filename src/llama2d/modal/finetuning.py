@@ -47,8 +47,6 @@ def main(Llama, LlamaCfg, **kwargs):
     print(f"Dataset config: {dataset_config=}")
 
     use_2d = train_config.use_2d
-    ignore_pos_embeds = train_config.ignore_pos_embeds
-
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(train_config.seed)
     torch.manual_seed(train_config.seed)
@@ -93,10 +91,7 @@ def main(Llama, LlamaCfg, **kwargs):
     
 
 
-    # pin_lbd means "pin the lambda gate parameter to 0"
-    # when you pin lambda to zero, you get the same behavior as llama
     kwargs = {
-        "pin_lbd": ignore_pos_embeds,
         "use_2d": use_2d,
         "lbd_start_value":train_config.lbd_start_value
     }# if use_2d else {}
@@ -131,7 +126,6 @@ def main(Llama, LlamaCfg, **kwargs):
             llama_config.use_cache = use_cache
 
             llama_config.use_2d = use_2d
-            llama_config.pin_lbd = ignore_pos_embeds
             llama_config.lbd_start_value = train_config.lbd_start_value
 
             with torch.device("meta"):
@@ -183,12 +177,11 @@ def main(Llama, LlamaCfg, **kwargs):
 
         trainable_params_before, _ = model.get_nb_trainable_parameters()
 
-        if not ignore_pos_embeds:
-            print("--------IGNORE POS EMBEDS IS FALSE--------")
-            for k, v in model.named_parameters():
-                if k.endswith(".lbd"):
-                    v.requires_grad = True
-                    print(k, "requires_grad=", v.requires_grad, v)
+        print("--------IGNORE POS EMBEDS IS FALSE--------")
+        for k, v in model.named_parameters():
+            if k.endswith(".lbd"):
+                v.requires_grad = True
+                print(k, "requires_grad=", v.requires_grad, v)
 
         trainable_params_after, _ = model.get_nb_trainable_parameters()
         assert (
@@ -200,19 +193,9 @@ def main(Llama, LlamaCfg, **kwargs):
 
         model.print_trainable_parameters()
     else:
-        if not ignore_pos_embeds:
-            print("--------IGNORE POS EMBEDS IS FALSE--------")
-            for k, v in model.named_parameters():
-                if k.endswith(".lbd"):
-                    v.requires_grad = v.data.requires_grad = True
-                    print(k, "requires_grad=", v.requires_grad, v.data)
-
-    if ignore_pos_embeds:
-        print("--------IGNORE POS EMBEDS IS TRUE--------")
-        # make all .lbd parameters untrainable
         for k, v in model.named_parameters():
             if k.endswith(".lbd"):
-                v.requires_grad = v.data.requires_grad = False
+                v.requires_grad = v.data.requires_grad = True
                 print(k, "requires_grad=", v.requires_grad, v.data)
 
     # setting up FSDP if enable_fsdp is enabled

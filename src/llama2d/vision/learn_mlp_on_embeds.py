@@ -7,7 +7,7 @@ from torch import nn
 class CoordMlp(nn.Module):
     def __init__(self,n:int,hidden:int):
         super().__init__()
-        self.embed = PositionEmbeddingRandom(n,pin_lbd=False,torch_dtype=torch.float32)
+        self.embed = PositionEmbeddingRandom(n,torch_dtype=torch.float32)
         self.a = nn.Linear(n*2,hidden)
         self.b = nn.Linear(hidden,1)
 
