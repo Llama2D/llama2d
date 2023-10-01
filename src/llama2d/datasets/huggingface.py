@@ -83,39 +83,16 @@ dtypes = {
 
 from time import time
 class HuggingFaceDataset(torch.utils.data.Dataset):
-    def __init__(
-          self,
-          repo:str,
-          split:str,
-          cache_dir:str=None,
-          keep_fraction:float=1.0,
-          use_2d:bool=True
-        ):
-        assert cache_dir is not None,"cache_dir must be specified"
+    def __init__(self,repo:str,split:str,keep_fraction:float=1.0,use_2d:bool=True):
         print("Loading dataset...")
         start_time = time()
 
-        import os
-        print(cache_dir,os.listdir(cache_dir))
-        hf_dataset = load_dataset(repo,cache_dir=cache_dir)
+        hf_dataset = load_dataset(repo)
         
         print(f"Loaded dataset in {time()-start_time} seconds.")
         # dataset = [d for d in dataset if d is not None and sum([1 for i in d["labels"] if i>0])>0]
-
-        def has_positive_label(d):
-          # short-circuit evaluation
-          for i,label_id in enumerate(d["labels"]):
-            if label_id>0:
-              return True
-            if d["attention_mask"][i]==0:
-              # assume padding tokens are at the end
-              break
-          return False
         dataset = hf_dataset["train"] \
-          .filter(has_positive_label)
-
-        # keep only a fraction of the dataset
-        dataset = dataset[:int(len(dataset)*keep_fraction)]
+          .filter(lambda d: sum([1 for i in d["labels"][::-1] if i>0])>0)
 
         # split into train/val
         train_percent = 80
@@ -125,6 +102,10 @@ class HuggingFaceDataset(torch.utils.data.Dataset):
 
         self.dataset = train_dataset if split == "train" else val_dataset
 
+        # keep only a fraction of the dataset
+        if keep_fraction < 1.0:
+            self.dataset = torch.utils.data.Subset(self.dataset,range(int(len(self.dataset)*keep_fraction)))
+          
         self.use_2d = use_2d
     
     def __getitem__(self, index):
