@@ -24,7 +24,7 @@ class Mind2webDataset(Dataset):
         self, model="decapoda-research/llama-7b-hf", playwright=None, headless=False
     ):
         assert playwright is not None, "Please pass in playwright"
-        self.__extractor = Llama2dWebsiteFeatureExtractor(model, mask_out_body=True)
+        self.__extractor = Llama2dWebsiteFeatureExtractor(mask_out_body=True)
 
         self.uid_to_mhtml = self.get_uid_to_mhtml_map()
 
@@ -147,7 +147,7 @@ if __name__ == "__main__":
         dataset = Mind2webDataset(playwright=playwright)
 
         # publish a subset
-        num_samples = 300
+        num_samples = 2_000
 
         if num_samples is not None:
             dataset, _ = torch.utils.data.random_split(

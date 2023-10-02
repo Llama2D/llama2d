@@ -1,6 +1,6 @@
 from pathlib import Path
 
-ROOT_DIR = Path(__file__).parent.parent.resolve()
+ROOT_DIR = Path(__file__).parent.parent.parent.resolve()
 
 # 3 times the resolution of a 1080p monitor
 SCREEN_RESOLUTION = (1280, 1080 * 3)

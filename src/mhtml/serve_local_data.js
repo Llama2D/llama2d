@@ -5,7 +5,7 @@ const fs = require('fs');
 const filenamify = require('filenamify');
 
 const { join } = require('path');
-const mhtmlDir = join(__dirname, '../data/mind2web-mhtml');
+const mhtmlDir = join(__dirname, '../../data/mind2web-mhtml');
 // const mhtmlDir = join(__dirname, 'demos');
 
 const sentinel = 'mind2web_local_serve:'
