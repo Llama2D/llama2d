@@ -105,6 +105,10 @@ def main(
     lambda_lr:float=3e-4,
     keep_fraction:float=1.0,
     seed:int=0,
+
+    # wandb args
+    group:str=None,
+    name:str=None,
 ):
     print("Welcome to Modal Llama fine-tuning.")
     print(f"Dataset is {dataset}.")
