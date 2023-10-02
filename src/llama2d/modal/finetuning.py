@@ -323,10 +323,29 @@ def main(Llama, LlamaCfg, **kwargs):
 
     # Initialize the optimizer and learning rate scheduler
 
+    # make 2 param groups: for *.lbd.* and for the rest
+    param_groups = [
+        {
+            "params": [
+                p
+                for n, p in model.named_parameters()
+                if any([k in n for k in train_config.target_modules])
+            ],
+            "lr": train_config.lambda_lr,
+        },
+        {
+            "params": [
+                p
+                for n, p in model.named_parameters()
+                if not any([k in n for k in train_config.target_modules])
+            ],
+            "lr": train_config.lr,
+        },
+    ]
+
     if fsdp_config.pure_bf16 and fsdp_config.optimizer == "anyprecision":
         optimizer = AnyPrecisionAdamW(
-            model.parameters(),
-            lr=train_config.lr,
+            param_groups,
             momentum_dtype=torch.bfloat16,
             variance_dtype=torch.bfloat16,
             use_kahan_summation=False,
@@ -334,8 +353,7 @@ def main(Llama, LlamaCfg, **kwargs):
         )
     else:
         optimizer = optim.AdamW(
-            model.parameters(),
-            lr=train_config.lr,
+            param_groups,
             weight_decay=train_config.weight_decay,
         )
     scheduler = StepLR(optimizer, step_size=1, gamma=train_config.gamma)
