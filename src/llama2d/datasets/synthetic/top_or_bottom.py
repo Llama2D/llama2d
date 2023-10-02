@@ -15,7 +15,6 @@ class TopBottomDataset(Dataset):
     def __init__(
             self,
             num_screens:int,
-            words_per_screen:int,
             tokenizer:Llama2dTokenizer=None
         ):
         self.num_screens = num_screens
@@ -44,9 +43,9 @@ class TopBottomDataset(Dataset):
 
 if __name__ == "__main__":
 
-    dataset = TopBottomDataset(num_screens=,words_per_screen=20)
+    dataset = TopBottomDataset(num_screens=500)
 
     debug_dataset(dataset)
 
-    info = DatasetInfo(repo="llama2d/llama2d-zoo-compass",desc="Identify the animal farthest north/west/east/south in the zoo.")
+    info = DatasetInfo(repo="llama2d/llama2d-top-or-bottom",desc="Identify if a person is up or down.")
     publish_pt_dataset(dataset,info)

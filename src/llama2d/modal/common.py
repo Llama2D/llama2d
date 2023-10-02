@@ -33,6 +33,9 @@ if os.path.exists(transformers_dir) and os.path.exists(llama_recipes_dir):
     import os
     transformers_commit = os.popen(f"cd {transformers_dir} && git rev-parse HEAD").read().strip()
     llama_recipes_commit = os.popen(f"cd {llama_recipes_dir} && git rev-parse HEAD").read().strip()
+
+    assert transformers_commit != "", "Could not get transformers commit."
+    assert llama_recipes_commit != "", "Could not get llama-recipes commit."
 else:
     transformers_commit = "overwriting-llama"
     llama_recipes_commit = "andrew-dev"
