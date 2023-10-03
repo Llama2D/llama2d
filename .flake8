@@ -110,3 +110,5 @@ exclude =
   app/tests/*,
   *migrations*,
   alembic/*,
+  transformers/*,
+  tests/*,

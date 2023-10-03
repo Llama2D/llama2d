@@ -60,7 +60,7 @@ def viz_pt_input(pt_input):
             current_word = []
             current_coord = token[1]
         current_word.append(token)
-    if(len(current_word)>0):
+    if len(current_word) > 0:
         words.append(current_word)
 
     # plot with_coords as text on a matplotlib figure
@@ -100,8 +100,11 @@ def viz_pt_input(pt_input):
 
     print("<Open token_with_coords.png to see the screen>")
 
+
 from torch.utils.data import Dataset
-def debug_dataset(dataset:Dataset):
+
+
+def debug_dataset(dataset: Dataset):
     pt_input = None
 
     action = None
@@ -123,17 +126,21 @@ def debug_dataset(dataset:Dataset):
                 i += int(action)
                 continue
         i += 1
-    
-    assert pt_input is not None,"Didn't find any valid dataset entries!"
+
+    assert pt_input is not None, "Didn't find any valid dataset entries!"
     if action != "n":
         input("Dataset has ended. Press enter to continue program.")
 
+
 if __name__ == "__main__":
     from llama2d.datasets.mind2web import Mind2webDataset
+
     with sync_playwright() as playwright:
-        dataset = HuggingFaceDataset("llama2d/llama2d-mind2web",split="train")
+        dataset = HuggingFaceDataset("llama2d/llama2d-mind2web", split="train")
         for entry in dataset:
-            assert (entry["labels"]>0).any(), f"No labels in entry! {entry['labels'].tolist()}"
+            assert (
+                entry["labels"] > 0
+            ).any(), f"No labels in entry! {entry['labels'].tolist()}"
 
         dataset = Mind2webDataset(playwright=playwright, headless=False)
 

@@ -5,25 +5,25 @@ Extract features using the tokenizer, including text and image
 
 import tempfile
 from pathlib import Path
-from typing import List, Optional, Dict
-from dataclasses import replace
+from typing import Dict, List, Optional
 
 import torch
 
-from llama2d.constants import (
-    MAX_PAGE_LEN,
-    MAX_SEQ_LEN,
-    MAX_TAGS_LEN,
-    SCREEN_RESOLUTION,
-)
-from llama2d.tagging.add_tags_to_page import TagAndBox
-from llama2d.vision.ocr import ImageAnnotator,ImageAnnotation,Llama2dScreen
-from llama2d.vision.take_screenshot import extract_domain, take_screenshot
+from src.llama2d.constants import MAX_PAGE_LEN, MAX_SEQ_LEN, MAX_TAGS_LEN
+from src.llama2d.tagging.add_tags_to_page import TagAndBox
+from src.llama2d.vision.ocr import ImageAnnotator, Llama2dScreen
+from src.llama2d.vision.take_screenshot import extract_domain, take_screenshot
 from transformers import LlamaTokenizer
 
 
 class Llama2dTokenizer(object):
-    def __init__(self,model_path:str="decapoda-research/llama-7b-hf",separator_id=None,label_mask_id=-100,mask_out_body=True):
+    def __init__(
+        self,
+        model_path: str = "decapoda-research/llama-7b-hf",
+        separator_id=None,
+        label_mask_id=-100,
+        mask_out_body=True,
+    ):
         self.tokenizer = LlamaTokenizer.from_pretrained(model_path)
 
         if not separator_id:
@@ -35,8 +35,10 @@ class Llama2dTokenizer(object):
 
         self.__label_mask_id = label_mask_id
         self.__mask_out_body = mask_out_body
-    
-    def process(self,prompt:str,screen:Llama2dScreen,output:str)->Dict[str,torch.Tensor]:
+
+    def process(
+        self, prompt: str, screen: Llama2dScreen, output: str
+    ) -> Dict[str, torch.Tensor]:
         # output tokens
         output_tokens = self.tokenizer.tokenize(output)
         # and use (-1,-1) for the 2d embeddings for the prompt
@@ -69,7 +71,6 @@ class Llama2dTokenizer(object):
                 output_tokens
             )
         )
-
 
         # mask out the prompt
         label_ids = (
@@ -159,14 +160,13 @@ class Llama2dTokenizer(object):
         }
 
 
-
 class Llama2dWebsiteFeatureExtractor(object):
     def __init__(
-        self, **kwargs,
+        self,
+        **kwargs,
     ):  # -100 is default
         self.tokenizer = Llama2dTokenizer(**kwargs)
         self.__annotator = ImageAnnotator()
-
 
     def process(
         self, prompt, page, output, tags_and_boxes: Optional[List[TagAndBox]] = None
@@ -177,9 +177,9 @@ class Llama2dWebsiteFeatureExtractor(object):
 
         if tags_and_boxes is not None:
             for tag in tags_and_boxes[:MAX_TAGS_LEN]:
-                annotations = annotations.concat_word(word=tag.word,xy=tag.coords)
-        
-        return self.tokenizer.process(prompt,annotations,output)
+                annotations = annotations.concat_word(word=tag.word, xy=tag.coords)
+
+        return self.tokenizer.process(prompt, annotations, output)
 
     def create_inference_data(self, page, prompt, uri):
         with tempfile.TemporaryDirectory() as tmpdir:
