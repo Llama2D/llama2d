@@ -88,13 +88,11 @@ def main(Llama, LlamaCfg, **kwargs):
     )
     if not train_config.enable_fsdp or rank == 0:
         print(f"--> Validation Set Length = {len(dataset_val)}")
-    
-
 
     kwargs = {
         "use_2d": use_2d,
-        "lbd_start_value":train_config.lbd_start_value
-    }# if use_2d else {}
+        "lbd_start_value": train_config.lbd_start_value,
+    }  # if use_2d else {}
 
     # Load the pre-trained model and setup its configuration
     use_cache = False if train_config.enable_fsdp else None
@@ -184,9 +182,7 @@ def main(Llama, LlamaCfg, **kwargs):
                 print(k, "requires_grad=", v.requires_grad, v)
 
         trainable_params_after, _ = model.get_nb_trainable_parameters()
-        assert (
-            trainable_params_after > trainable_params_before
-        ), (
+        assert trainable_params_after > trainable_params_before, (
             "Looks like lambda gating parameter isn't marked as trainable."
             f" Before: {trainable_params_before}, after: {trainable_params_after}"
         )
@@ -274,7 +270,6 @@ def main(Llama, LlamaCfg, **kwargs):
         )
 
     def print_generations():
-
         # broken right now
         return
 
@@ -289,7 +284,6 @@ def main(Llama, LlamaCfg, **kwargs):
         print("-----Sample generation-------")
 
         for test_sample in range(num_samples):
-
             # get a sample from the val dataset
             test_sample = dataset_val[rand_idxes[test_sample]]
 
@@ -297,13 +291,24 @@ def main(Llama, LlamaCfg, **kwargs):
             print(tokenizer.decode(test_sample["input_ids"], skip_special_tokens=True))
 
             # get last positive label idx
-            last_outputted_chunk_idx = torch.nonzero(test_sample["labels"] > 0)[-1].item() + 1
+            last_outputted_chunk_idx = (
+                torch.nonzero(test_sample["labels"] > 0)[-1].item() + 1
+            )
             # get the first label idx of that chunk
-            first_idx_of_chunk = torch.nonzero(test_sample["labels"][:last_outputted_chunk_idx]<=0)[-1].item()+1
+            first_idx_of_chunk = (
+                torch.nonzero(test_sample["labels"][:last_outputted_chunk_idx] <= 0)[
+                    -1
+                ].item()
+                + 1
+            )
 
-            batched_sample = {k: v[None,:first_idx_of_chunk,...] for k, v in test_sample.items()}
+            batched_sample = {
+                k: v[None, :first_idx_of_chunk, ...] for k, v in test_sample.items()
+            }
 
-            assert batched_sample["input_ids"][0,-1] == 0, "input_ids for valid set must end with pad token"
+            assert (
+                batched_sample["input_ids"][0, -1] == 0
+            ), "input_ids for valid set must end with pad token"
 
             # move to current device
             batched_sample = {k: v.to("cuda") for k, v in batched_sample.items()}
@@ -390,6 +395,7 @@ def main(Llama, LlamaCfg, **kwargs):
     print("--------------------------------")
 
     print_generations()
+
 
 if __name__ == "__main__":
     fire.Fire(main)

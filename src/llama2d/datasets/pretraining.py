@@ -1,9 +1,10 @@
 from playwright.sync_api import sync_playwright
 from torch.utils.data import Dataset
 
-from src.data.pretraining_urls import urls
 from llama2d.datasets.huggingface import DatasetInfo, publish_pt_dataset
 from llama2d.vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
+from src.data.pretraining_urls import urls
+
 
 class Llama2dPretrainingDataset(Dataset):
     def __init__(

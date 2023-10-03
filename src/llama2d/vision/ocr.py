@@ -1,5 +1,5 @@
-from dataclasses import dataclass,replace,field
-from typing import List, Tuple, Optional
+from dataclasses import dataclass, field, replace
+from typing import List, Optional, Tuple
 
 from google.cloud import vision
 
@@ -17,73 +17,74 @@ class ImageAnnotation:
 
 @dataclass
 class Llama2dScreen:
-    full_text: str=""  # full text
-    orig_text_dims: Tuple[
-        float, float
-    ]=(1.,1.)  # the dimension of the *TEXT PORTION* of the image
+    full_text: str = ""  # full text
+    orig_text_dims: Tuple[float, float] = (
+        1.0,
+        1.0,
+    )  # the dimension of the *TEXT PORTION* of the image
 
-    words: List[ImageAnnotation]=field(default_factory=list)  # a list of words and their midpoints
+    words: List[ImageAnnotation] = field(
+        default_factory=list
+    )  # a list of words and their midpoints
 
-    def __add__(self,other):
+    def __add__(self, other):
         assert self.orig_text_dims == other.orig_text_dims
-        return replace(self,words=self.words+other.words)
-    
-    def push_word(
-            self,
-            word:str,
+        return replace(self, words=self.words + other.words)
 
-            # must use exactly one
-            # all 4 corners
-            xyxy:Optional[Tuple[float,float,float,float]]=None,
-            # midpoint
-            xy:Optional[Tuple[float,float,float,float]]=None,
-        ):
-        new = self.concat_word(word=word,xyxy=xyxy,xy=xy)
+    def push_word(
+        self,
+        word: str,
+        # must use exactly one
+        # all 4 corners
+        xyxy: Optional[Tuple[float, float, float, float]] = None,
+        # midpoint
+        xy: Optional[Tuple[float, float, float, float]] = None,
+    ):
+        new = self.concat_word(word=word, xyxy=xyxy, xy=xy)
 
         self.words = new.words
         self.full_text = new.full_text
-    
+
     def concat_word(
         self,
-        word:str,
-
+        word: str,
         # must use exactly one
         # all 4 corners
-        xyxy:Optional[Tuple[float,float,float,float]]=None,
+        xyxy: Optional[Tuple[float, float, float, float]] = None,
         # midpoint
-        xy:Optional[Tuple[float,float,float,float]]=None,
-
+        xy: Optional[Tuple[float, float, float, float]] = None,
     ):
         full_text = self.full_text
         words = self.words
 
         if len(words) > 0:
             full_text += " "
-        full_text+=word
+        full_text += word
 
-        assert (xyxy is None) != (xy is None),"You should specify xy (midpoint) xor xyxy (corners)."
+        assert (xyxy is None) != (
+            xy is None
+        ), "You should specify xy (midpoint) xor xyxy (corners)."
         if xy is None:
             x = (xyxy[0] + xyxy[2]) / 2
             y = (xyxy[1] + xyxy[3]) / 2
-            xy = (x,y)
+            xy = (x, y)
 
-        x,y = xy
-        w,h = self.orig_text_dims
-        xy_norm = (x/w,y/h)
+        x, y = xy
+        w, h = self.orig_text_dims
+        xy_norm = (x / w, y / h)
 
-        new_ann = ImageAnnotation(text=word,midpoint=xy,midpoint_normalized=xy_norm)
-        words = words+[new_ann]
+        new_ann = ImageAnnotation(text=word, midpoint=xy, midpoint_normalized=xy_norm)
+        words = words + [new_ann]
 
+        return replace(self, words=words, full_text=full_text)
 
-        return replace(self,words=words,full_text=full_text)
-    
-    def __getitem__(self,key:slice):
-        assert type(key)==slice,"__getitem__ only supports slice right now"
+    def __getitem__(self, key: slice):
+        assert type(key) == slice, "__getitem__ only supports slice right now"
         words = self.words[key]
 
         full_text = " ".join([word.text for word in words])
 
-        return replace(self,words=words,full_text=full_text)
+        return replace(self, words=words, full_text=full_text)
 
 
 width, height = SCREEN_RESOLUTION
@@ -116,15 +117,12 @@ class ImageAnnotator:
             orig_text_dims=SCREEN_RESOLUTION,
         )
         for text in annotations[1:]:
-
             xs = [vertex.x for vertex in text.bounding_poly.vertices]
             ys = [vertex.y for vertex in text.bounding_poly.vertices]
 
-
             prev_len = len(annotations_normed.words)
             annotations_normed.push_word(
-                word=text.description,
-                xyxy=[min(xs),min(ys),max(xs),max(ys)]
+                word=text.description, xyxy=[min(xs), min(ys), max(xs), max(ys)]
             )
             assert len(annotations_normed.words) == prev_len + 1
 
