@@ -9,10 +9,10 @@ from typing import Dict, List, Optional
 
 import torch
 
-from src.llama2d.constants import MAX_PAGE_LEN, MAX_SEQ_LEN, MAX_TAGS_LEN
-from src.llama2d.tagging.add_tags_to_page import TagAndBox
-from src.llama2d.vision.ocr import ImageAnnotator, Llama2dScreen
-from src.llama2d.vision.take_screenshot import extract_domain, take_screenshot
+from llama2d.constants import MAX_PAGE_LEN, MAX_SEQ_LEN, MAX_TAGS_LEN
+from llama2d.tagging.add_tags_to_page import TagAndBox
+from llama2d.vision.ocr import ImageAnnotator, Llama2dScreen
+from llama2d.vision.take_screenshot import extract_domain, take_screenshot
 from transformers import LlamaTokenizer
 
 

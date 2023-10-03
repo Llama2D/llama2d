@@ -8,7 +8,7 @@ from datasets import Dataset
 from torch.utils import data
 
 #
-from src.llama2d.datasets.cached import CachedDataset
+from llama2d.datasets.cached import CachedDataset
 
 
 @dataclass
