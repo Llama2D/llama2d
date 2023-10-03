@@ -57,7 +57,7 @@ class UnscrambleDataset(Dataset):
 if __name__ == "__main__":
 
     dataset = UnscrambleDataset(
-        num_screens=500,
+        num_screens=5000,
         words_per_screen=50,
         words_per_line=15,
         lines_per_screen=5

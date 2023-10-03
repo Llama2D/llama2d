@@ -113,10 +113,6 @@ def main(
     print("Welcome to Modal Llama fine-tuning.")
     print(f"Dataset is {dataset}.")
 
-    # print(dict(Secret.from_name("huggingface").__dict__))
-    # os.environ["HUGGINGFACE_TOKEN"] = Secret.from_name("huggingface")["HUGGINGFACE_TOKEN"] # noqa
-    # print(f"Huggingface API key is {os.environ['HUGGINGFACE_TOKEN']}.")
-
     model_name = BASE_MODELS[base]
     print(f"Syncing base model {model_name} to volume.")
     download.remote(model_name)
