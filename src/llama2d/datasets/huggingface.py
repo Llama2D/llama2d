@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from time import time
 
 import numpy as np
-import pandas as pd
 import torch
 from datasets import Dataset
 from torch.utils import data
