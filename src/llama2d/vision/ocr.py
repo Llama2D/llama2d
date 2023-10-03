@@ -81,7 +81,7 @@ class Llama2dScreen:
         assert type(key)==slice,"__getitem__ only supports slice right now"
         words = self.words[key]
 
-        full_text = " ".join(words)
+        full_text = " ".join([word.text for word in words])
 
         return replace(self,words=words,full_text=full_text)
 
@@ -116,10 +116,17 @@ class ImageAnnotator:
             orig_text_dims=SCREEN_RESOLUTION,
         )
         for text in annotations[1:]:
+
+            xs = [vertex.x for vertex in text.bounding_poly.vertices]
+            ys = [vertex.y for vertex in text.bounding_poly.vertices]
+
+
+            prev_len = len(annotations_normed.words)
             annotations_normed.push_word(
                 word=text.description,
-                xyxy=text.bounding_poly.vertices
+                xyxy=[min(xs),min(ys),max(xs),max(ys)]
             )
+            assert len(annotations_normed.words) == prev_len + 1
 
         # optionally, sort the words by midpoint
         annotations_normed.words = list(

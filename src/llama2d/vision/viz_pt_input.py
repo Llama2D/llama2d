@@ -3,7 +3,6 @@ import matplotlib
 from matplotlib import pyplot as plt
 from playwright.sync_api import sync_playwright
 
-from llama2d.datasets.mind2web import Mind2webDataset
 from transformers import LlamaTokenizer
 
 matplotlib.use("Agg")
@@ -61,7 +60,8 @@ def viz_pt_input(pt_input):
             current_word = []
             current_coord = token[1]
         current_word.append(token)
-    words.append(current_word)
+    if(len(current_word)>0):
+        words.append(current_word)
 
     # plot with_coords as text on a matplotlib figure
 
@@ -129,6 +129,7 @@ def debug_dataset(dataset:Dataset):
         input("Dataset has ended. Press enter to continue program.")
 
 if __name__ == "__main__":
+    from llama2d.datasets.mind2web import Mind2webDataset
     with sync_playwright() as playwright:
         dataset = HuggingFaceDataset("llama2d/llama2d-mind2web",split="train")
         for entry in dataset:

@@ -179,7 +179,7 @@ class Llama2dWebsiteFeatureExtractor(object):
             for tag in tags_and_boxes[:MAX_TAGS_LEN]:
                 annotations = annotations.concat_word(word=tag.word,xy=tag.coords)
         
-        return self.tokenizer(prompt,annotations,output)
+        return self.tokenizer.process(prompt,annotations,output)
 
     def create_inference_data(self, page, prompt, uri):
         with tempfile.TemporaryDirectory() as tmpdir:

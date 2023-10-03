@@ -15,6 +15,7 @@ from llama2d.datasets.huggingface import DatasetInfo, publish_pt_dataset
 from llama2d.tagging.add_tags_to_page import add_tags_to_webpage
 from llama2d.vision.take_screenshot import take_screenshot
 from llama2d.vision.url_to_llama_input import Llama2dWebsiteFeatureExtractor
+from llama2d.vision.viz_pt_input import debug_dataset
 
 should_debug = False
 
@@ -119,6 +120,9 @@ class Mind2webDataset(Dataset):
             # raise e
             print("Error in dataset:", e)
 
+            if "ImageAnnotation" in str(e):
+                raise e
+
             if screenshot_path is not None:
                 os.remove(screenshot_path)
             return None
@@ -144,7 +148,9 @@ if __name__ == "__main__":
     )
 
     with sync_playwright() as playwright:
-        dataset = Mind2webDataset(playwright=playwright)
+        dataset = Mind2webDataset(playwright=playwright,headless=True)
+
+        debug_dataset(dataset)
 
         # publish a subset
         num_samples = 2_000
