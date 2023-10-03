@@ -22,7 +22,7 @@ should_debug = False
 
 class Mind2webDataset(Dataset):
     def __init__(
-        self, model="decapoda-research/llama-7b-hf", playwright=None, headless=False
+        self, model="decapoda-research/llama-7b-hf", playwright=None, headless=False,show_errors=False
     ):
         assert playwright is not None, "Please pass in playwright"
         self.__extractor = Llama2dWebsiteFeatureExtractor(mask_out_body=True)
@@ -53,6 +53,8 @@ class Mind2webDataset(Dataset):
                 "Safari/537.36"
             }
         )
+        self.page.set_default_navigation_timeout(1000 * 10)
+        self.show_errors = show_errors
 
     def __len__(self):
         return len(self.actions)
@@ -118,13 +120,15 @@ class Mind2webDataset(Dataset):
             return ret
         except Exception as e:
             # raise e
-            print("Error in dataset:", e)
+            if self.show_errors:
+                print("Error in dataset:", str(e)[:100] + "...")
 
             if "ImageAnnotation" in str(e):
                 raise e
 
             if screenshot_path is not None:
-                os.remove(screenshot_path)
+                if os.path.exists(screenshot_path):
+                    os.remove(screenshot_path)
             return None
 
     def get_uid_to_mhtml_map(self) -> Dict[str, str]:
@@ -150,7 +154,7 @@ if __name__ == "__main__":
     with sync_playwright() as playwright:
         dataset = Mind2webDataset(playwright=playwright, headless=True)
 
-        debug_dataset(dataset)
+        # debug_dataset(dataset)
 
         # publish a subset
         num_samples = 2_000
