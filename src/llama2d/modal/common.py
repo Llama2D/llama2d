@@ -31,8 +31,13 @@ llama_recipes_dir = f"{root_dir}/llama-recipes"
 
 if os.path.exists(transformers_dir) and os.path.exists(llama_recipes_dir):
     import os
-    transformers_commit = os.popen(f"cd {transformers_dir} && git rev-parse HEAD").read().strip()
-    llama_recipes_commit = os.popen(f"cd {llama_recipes_dir} && git rev-parse HEAD").read().strip()
+
+    transformers_commit = (
+        os.popen(f"cd {transformers_dir} && git rev-parse HEAD").read().strip()
+    )
+    llama_recipes_commit = (
+        os.popen(f"cd {llama_recipes_dir} && git rev-parse HEAD").read().strip()
+    )
 
     assert transformers_commit != "", "Could not get transformers commit."
     assert llama_recipes_commit != "", "Could not get llama-recipes commit."
@@ -40,7 +45,9 @@ else:
     transformers_commit = "overwriting-llama"
     llama_recipes_commit = "andrew-dev"
 
-print(f"Transformers commit: {transformers_commit}, llama-recipes commit: {llama_recipes_commit}")
+print(
+    f"Transformers commit: {transformers_commit}, llama-recipes commit: {llama_recipes_commit}"
+)
 
 import random
 
@@ -63,7 +70,7 @@ image = (
         "playwright",
         "wandb",
         "transformers",
-        "matplotlib"
+        "matplotlib",
     )
     .pip_install(
         f"llama-recipes @ git+https://github.com/modal-labs/llama-recipes.git",

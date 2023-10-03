@@ -98,17 +98,15 @@ def main(
     batch_size: int = 16,
     use_2d: bool = True,
     peft: bool = False,
-
     repo: str = "llama2d/llama2d-mind2web",
-    lbd_start_value:float=0.0,
-    lr:float=3e-5,
-    lambda_lr:float=3e-4,
-    keep_fraction:float=1.0,
-    seed:int=0,
-
+    lbd_start_value: float = 0.0,
+    lr: float = 3e-5,
+    lambda_lr: float = 3e-4,
+    keep_fraction: float = 1.0,
+    seed: int = 0,
     # wandb args
-    group:str=None,
-    name:str=None,
+    group: str = None,
+    name: str = None,
 ):
     print("Welcome to Modal Llama fine-tuning.")
     print(f"Dataset is {dataset}.")
@@ -151,17 +149,14 @@ def main(
             "peft_method": "lora",
             "lora_config.r": 8,
             "lora_config.lora_alpha": 16,
-
             # --- Llama2D options ---
             "label_names": ["coords"],
             "dataset_folder": "mind2web-cache",
-
             "use_2d": use_2d,
             "keep_fraction": keep_fraction,
             "repo": repo,
-            "lbd_start_value":lbd_start_value,
-            "seed":seed,
-
+            "lbd_start_value": lbd_start_value,
+            "seed": seed,
         }
     )
 

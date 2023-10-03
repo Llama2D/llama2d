@@ -152,7 +152,7 @@ if __name__ == "__main__":
     )
 
     with sync_playwright() as playwright:
-        dataset = Mind2webDataset(playwright=playwright,headless=True,show_errors=False)
+        dataset = Mind2webDataset(playwright=playwright, headless=True)
 
         # debug_dataset(dataset)
 
