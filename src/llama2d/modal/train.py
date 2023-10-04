@@ -94,7 +94,7 @@ def main(
     dataset: str,
     base: str = "base7",
     run_id: str = "",
-    num_epochs: int = 10,
+    num_epochs: int = 1,
     batch_size: int = 16,
     repo: str = "llama2d/llama2d-mind2web",
     keep_fraction: float = 1.0,
@@ -106,7 +106,7 @@ def main(
     lbd_start_value: float = 0.0,
     lr: float = 3e-5,
     lambda_lr: float = 3e-2,
-    point_embed_lr: float = 3e-2,
+    point_embed_lr: float = 3e-5,
 
     # wandb args
     group: str = None,
