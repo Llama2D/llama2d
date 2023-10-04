@@ -93,6 +93,7 @@ def main(Llama, LlamaCfg, **kwargs):
         "use_2d": use_2d,
         "lbd_start_value": train_config.lbd_start_value,
         "use_point_embed": train_config.use_point_embed,
+        "separate_point_embed": train_config.separate_point_embed,
     }  # if use_2d else {}
 
     # Load the pre-trained model and setup its configuration
@@ -127,6 +128,7 @@ def main(Llama, LlamaCfg, **kwargs):
             llama_config.use_2d = use_2d
             llama_config.lbd_start_value = train_config.lbd_start_value
             llama_config.use_point_embed = train_config.use_point_embed
+            llama_config.separate_point_embed = train_config.separate_point_embed
 
             with torch.device("meta"):
                 model = Llama(llama_config)
