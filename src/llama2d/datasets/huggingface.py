@@ -109,7 +109,7 @@ class HuggingFaceDataset(torch.utils.data.Dataset):
         dataset = Dataset.from_pandas(df_filtered)
 
         # split into train/val
-        train_percent = 80
+        train_percent = 95
         train_size = int(len(dataset) * train_percent / 100)
         val_size = len(dataset) - train_size
         train_dataset, val_dataset = torch.utils.data.random_split(
