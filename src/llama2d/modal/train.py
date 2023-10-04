@@ -96,14 +96,18 @@ def main(
     run_id: str = "",
     num_epochs: int = 10,
     batch_size: int = 16,
-    use_2d: bool = True,
-    peft: bool = False,
     repo: str = "llama2d/llama2d-mind2web",
-    lbd_start_value: float = 0.0,
-    lr: float = 3e-5,
-    lambda_lr: float = 3e-4,
     keep_fraction: float = 1.0,
     seed: int = 0,
+
+    peft: bool = False,
+    use_2d: bool = True,
+    use_point_embed: bool = True,
+    lbd_start_value: float = 0.0,
+    lr: float = 3e-5,
+    lambda_lr: float = 3e-2,
+    point_embed_lr: float = 3e-2,
+
     # wandb args
     group: str = None,
     name: str = None,
@@ -157,6 +161,8 @@ def main(
             "repo": repo,
             "lbd_start_value": lbd_start_value,
             "seed": seed,
+            "use_point_embed": use_point_embed,
+            "point_embed_lr": point_embed_lr,
         }
     )
 
