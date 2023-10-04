@@ -41,6 +41,12 @@ const isEmpty = (el) => {
 function getElementXPath(element) {
     let path_parts = [];
 
+    let iframe_str = '';
+    if (element && element.ownerDocument !== window.document) {
+        // assert element.iframe_index !== undefined, "Element is not in the main document and does not have an iframe_index attribute";
+        iframe_str = `iframe_${element.getAttribute('iframe_index')}`
+    }
+
     while (element) {
         if (!element.tagName) {
             element = element.parentNode;
@@ -83,13 +89,15 @@ function getElementXPath(element) {
                 `contains(concat(" ", normalize-space(@class), " "), " ${single_class} ")`
             ).join(' and ');
 
-            prefix += `[${class_conditions}]`;
+            if (class_conditions.length > 0) {
+                prefix += `[${class_conditions}]`;
+            }
         }
 
         path_parts.unshift(prefix);
         element = element.parentNode;
     }
-    return "//" + path_parts.join('/');
+    return iframe_str + "//" + path_parts.join('/');
 }
 
 
@@ -99,15 +107,29 @@ window.tagifyWebpage = (gtCls, gtId) => {
     let gtTagId = null;
     let idToTag = {};
 
-    for (let el of document.body.querySelectorAll("*")) {
+    const allElements = [...document.body.querySelectorAll("*")];
+    const iframes = document.getElementsByTagName('iframe');
 
+    for (let i = 0; i < iframes.length; i++) {
+        try {
+            console.log('iframe!', iframes[i]);
+            const iframeDocument = iframes[i].contentDocument || iframes[i].contentWindow.document;
+            const iframeElements = [...iframeDocument.querySelectorAll("*")];
+            iframeElements.forEach(el => el.setAttribute('iframe_index', i));
+            allElements.push(...iframeElements);
+        } catch (e) {
+            // Cross-origin iframe error
+            console.error('Cross-origin iframe:', e);
+        }
+    }
+
+    for (let el of allElements) {
         const stringifiedClasses = el.classList.toString();
         const isGt = (gtCls === null || stringifiedClasses === gtCls) && (gtId === null || el.id === gtId);
 
         const empty = isEmpty(el);
         const dirty = !elIsClean(el);
         const uninteractible = !isInteractible(el);
-
 
         if (logElements.includes(el)) {
             console.log(`Logging ${el.innerText}, ${empty},${dirty},${uninteractible}`)
@@ -126,11 +148,11 @@ window.tagifyWebpage = (gtCls, gtId) => {
         const specialTags = ["input", "textarea", "select"];
 
         const tagLower = el.tagName.toLowerCase();
-        const tagStr = `[${numTagsSoFar}] `
+        const tagStr = specialTags.includes(tagLower) ? `{${numTagsSoFar}} ` : `[${numTagsSoFar}] `;
         idToTag[numTagsSoFar] = getElementXPath(el);
 
         // check if already tagged and remove previous tag if so
-        const tagRegex = /^\[\d+\]\s/;
+        const tagRegex = /[\[\]{]\d+[\[\]}]\s/;
         if (tagRegex.test(el.textContent)) {
             el.textContent = el.textContent.replace(tagRegex, '');
         }
@@ -156,8 +178,6 @@ window.tagifyWebpage = (gtCls, gtId) => {
 
         numTagsSoFar++;
     }
-
-    // console.log('idtotag', idToTag);
 
     return [gtTagId, idToTag];
 }
