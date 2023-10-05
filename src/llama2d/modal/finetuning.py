@@ -94,7 +94,7 @@ def main(Llama, LlamaCfg, **kwargs):
         "lbd_start_value": train_config.lbd_start_value,
         "use_point_embed": train_config.use_point_embed,
         "separate_point_embed": train_config.separate_point_embed,
-    }  # if use_2d else {}
+    }
 
     # Load the pre-trained model and setup its configuration
     use_cache = False if train_config.enable_fsdp else None

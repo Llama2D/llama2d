@@ -107,6 +107,7 @@ def main(
     lr: float = 3e-5,
     lambda_lr: float = 3e-2,
     point_embed_lr: float = 3e-5,
+    separate_point_embed: bool = False,
 
     # wandb args
     group: str = None,
@@ -163,6 +164,10 @@ def main(
             "seed": seed,
             "use_point_embed": use_point_embed,
             "point_embed_lr": point_embed_lr,
+            "separate_point_embed": separate_point_embed,
+
+            "group": group,
+            "name": name,
         }
     )
 
