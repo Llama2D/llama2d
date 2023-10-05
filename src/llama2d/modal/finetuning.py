@@ -336,8 +336,6 @@ def main(Llama, LlamaCfg, **kwargs):
                 print(k, v.data)
     print("--------------------------------")
 
-    print_generations()
-
 
 if __name__ == "__main__":
     fire.Fire(main)
