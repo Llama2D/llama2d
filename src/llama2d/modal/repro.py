@@ -65,7 +65,7 @@ def make_repro_command(dataset:str,repo:Optional[str]=None,version:Optional[str]
     # huggingface check
     if dataset == "hf_dataset.py":
         assert repo is not None, "Please specify repo for HF dataset."
-        commit_hash =  get_dataset_info(repo)
+        commit_hash =  get_dataset_info.local(repo)
         assert version is None or version == commit_hash, "Version must match commit hash - no branch name shenanigans."
         if version is None:
             version = commit_hash
