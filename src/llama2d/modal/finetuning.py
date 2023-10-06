@@ -37,6 +37,16 @@ from transformers import AutoTokenizer, default_data_collator
 from transformers.models.llama.modeling_llama import LlamaDecoderLayer
 from transformers.models.llama.sam_embed import PositionEmbeddingRandom
 
+# dataclass serialization
+import dataclasses, json
+
+class EnhancedJSONEncoder(json.JSONEncoder):
+        def default(self, o):
+            if dataclasses.is_dataclass(o):
+                return dataclasses.asdict(o)
+            return super().default(o)
+def json_dumps(obj, *args,**kwargs):
+    return json.dumps(obj,*args, cls=EnhancedJSONEncoder, **kwargs)
 
 def main(Llama, LlamaCfg, **kwargs):
     # Update the configuration for the training and sharding process
@@ -50,6 +60,10 @@ def main(Llama, LlamaCfg, **kwargs):
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(train_config.seed)
     torch.manual_seed(train_config.seed)
+    import random
+    random.seed(train_config.seed)
+    import numpy as np
+    np.random.seed(train_config.seed)
 
     if train_config.enable_fsdp:
         setup()
@@ -319,6 +333,7 @@ def main(Llama, LlamaCfg, **kwargs):
             fsdp_config if train_config.enable_fsdp else None,
             local_rank if train_config.enable_fsdp else None,
             rank if train_config.enable_fsdp else None,
+            kwargs,
         )
         if not train_config.enable_fsdp or rank == 0:
             [print(f"Key: {k}, Value: {v}") for k, v in results.items()]
