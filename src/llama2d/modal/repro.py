@@ -2,6 +2,8 @@ from common import transformers_dir,llama_recipes_dir,root_dir
 import os
 import sys
 
+from modal import secret
+
 def check_all_code_committed(dir):
 
     old_dir = os.getcwd()
@@ -34,18 +36,42 @@ def check_llama2d_code():
         "llama_recipes": llama_recipes,
     }
 
+
+from common import BASE_MODELS, GPU_MEM, N_GPUS, VOLUME_CONFIG, stub
+from modal import Mount, Secret, gpu
+@stub.function(
+    # memory=1024 * 100,
+    # timeout=3600 * 4,
+    secrets=[Secret.from_name("huggingface")],
+)
+def get_dataset_info(repo:str):
+    from datasets import get_dataset_infos
+    info = get_dataset_infos(repo)
+
+    # get commit hash from download checksums
+    checksum_urls = list(info["train"].info.download_checksums.keys())
+    assert len(checksum_urls) > 0, "No checksums found in dataset info."
+    commit_hash = checksum_urls[0].split("@")[1].split("/")[0]
+
+    print(f"Dataset commit hash: {commit_hash}")
+
+    return commit_hash
+
 from typing import Optional
 def make_repro_command(dataset:str,repo:Optional[str]=None,version:Optional[str] = None):
-    # huggingface check
-    if dataset == "hf_dataset.py":
-        assert version is not None,"Please specify a version for the HF dataset."
-
-    commits = check_llama2d_code()
-
     # get full command line command
     command = " ".join(sys.argv)
 
-    # TODO: fill in HF dataset name if it's not there
+    # huggingface check
+    if dataset == "hf_dataset.py":
+        assert repo is not None, "Please specify repo for HF dataset."
+        commit_hash =  get_dataset_info(repo)
+        assert version is None or version == commit_hash, "Version must match commit hash - no branch name shenanigans."
+        if version is None:
+            version = commit_hash
+            command += f" --version {version}"
+
+    commits = check_llama2d_code()
 
     return f"""
     # run in llama2d/ directory

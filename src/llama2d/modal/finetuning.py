@@ -97,6 +97,7 @@ def main(Llama, LlamaCfg, **kwargs):
     
     if dataset_config.dataset == "hf_dataset.py":
         version = dataset_train.version
+        kwargs["og_version"] = version
         kwargs["version"] = version
 
     dataset_val = get_preprocessed_dataset(
