@@ -91,8 +91,6 @@ dtypes = {
     "attention_mask": torch.int64,
 }
 
-def get_repo_version
-
 class HuggingFaceDataset(torch.utils.data.Dataset):
     def __init__(
         self, repo: str, split: str, keep_fraction: float = 1.0, use_2d: bool = True, version: str = None
