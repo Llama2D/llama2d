@@ -96,7 +96,10 @@ def main(
     run_id: str = "",
     num_epochs: int = 1,
     batch_size: int = 16,
+
     repo: str = "llama2d/llama2d-mind2web",
+    version: str = None,
+
     keep_fraction: float = 1.0,
     seed: int = 0,
 
@@ -120,9 +123,9 @@ def main(
     print(f"Syncing base model {model_name} to volume.")
     download.remote(model_name)
 
-    cmd = make_repro_command()
-    print(cmd)
-    raise Exception("Done")
+    cmd,commits = make_repro_command()
+
+    assert group is not None and name is not None, "Please set wandb group and name."
 
     if not run_id:
         import secrets
@@ -172,6 +175,9 @@ def main(
 
             "group": group,
             "name": name,
+
+            "cmd": cmd,
+            "commits": commits,
         }
     )
 

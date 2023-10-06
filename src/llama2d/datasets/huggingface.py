@@ -91,15 +91,18 @@ dtypes = {
     "attention_mask": torch.int64,
 }
 
+def get_repo_version
 
 class HuggingFaceDataset(torch.utils.data.Dataset):
     def __init__(
-        self, repo: str, split: str, keep_fraction: float = 1.0, use_2d: bool = True
+        self, repo: str, split: str, keep_fraction: float = 1.0, use_2d: bool = True, version: str = None
     ):
         print("Loading dataset...")
         start_time = time()
 
-        hf_dataset = load_dataset(repo)
+        hf_dataset = load_dataset(repo, revision=version)
+        print(hf_dataset.info.version)
+        raise Exception("Stop here")
 
         print(f"Loaded dataset in {time()-start_time} seconds.")
         # dataset = [d for d in dataset if d is not None and sum([1 for i in d["labels"] if i>0])>0]

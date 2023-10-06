@@ -43,10 +43,10 @@ def make_repro_command():
     # TODO: fill in HF dataset name if it's not there
 
     return f"""
-    # run in llama2d
+    # run in llama2d/ directory
     git checkout {commits["llama2d"]}
-    cd transformers && git checkout {commits["transformers"]}
-    cd ../llama-recipes && git checkout {commits["llama_recipes"]}
+    cd transformers && git checkout {commits["transformers"]} && cd ..
+    cd llama-recipes && git checkout {commits["llama_recipes"]} && cd ..
     cd src/llama2d/modal
     {command}
-    """
+    """, commits
