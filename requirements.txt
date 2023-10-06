@@ -160,6 +160,8 @@ langchain==0.0.304
     # via -r requirements.in
 langsmith==0.0.41
     # via langchain
+loguru==0.7.2
+    # via -r requirements.in
 markdown-it-py==3.0.0
     # via rich
 markupsafe==2.1.3

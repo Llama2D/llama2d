@@ -20,3 +20,5 @@ nest-asyncio
 gdown
 peft
 pre-commit
+
+loguru
