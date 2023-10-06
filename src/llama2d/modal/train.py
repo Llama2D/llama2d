@@ -115,6 +115,7 @@ def main(
     # wandb args
     group: str = None,
     name: str = None,
+    not_an_experiment: bool = False,
 ):
     print("Welcome to Modal Llama fine-tuning.")
     print(f"Dataset is {dataset}.")
@@ -123,7 +124,15 @@ def main(
     print(f"Syncing base model {model_name} to volume.")
     download.remote(model_name)
 
-    cmd,commits = make_repro_command(dataset,repo,version)
+    try:
+        cmd,commits = make_repro_command(dataset,repo,version)
+    except Exception as e:
+        if not not_an_experiment:
+            raise e
+        print("Failed to make repro command.")
+        print(e)
+        cmd = None
+        commits = None
 
     assert group is not None and name is not None, "Please set wandb group and name."
 
