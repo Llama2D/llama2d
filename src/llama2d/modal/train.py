@@ -1,6 +1,7 @@
 import os
 import sys
 
+from repro import make_repro_command
 from common import BASE_MODELS, GPU_MEM, N_GPUS, VOLUME_CONFIG, stub
 from modal import Mount, Secret, gpu
 
@@ -88,7 +89,6 @@ def train(train_kwargs):
     print("Committing results volume (no progress bar) ...")
     stub.results_volume.commit()
 
-
 @stub.local_entrypoint()  # Runs locally to kick off remote training job.
 def main(
     dataset: str,
@@ -119,6 +119,10 @@ def main(
     model_name = BASE_MODELS[base]
     print(f"Syncing base model {model_name} to volume.")
     download.remote(model_name)
+
+    cmd = make_repro_command()
+    print(cmd)
+    raise Exception("Done")
 
     if not run_id:
         import secrets
