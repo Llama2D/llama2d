@@ -126,6 +126,7 @@ def main(
 
     try:
         cmd,commits = make_repro_command(dataset,repo,version)
+        print("Repro command:\n",cmd,"\n")
     except Exception as e:
         if not not_an_experiment:
             raise e
