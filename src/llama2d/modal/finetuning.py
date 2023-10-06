@@ -94,6 +94,10 @@ def main(Llama, LlamaCfg, **kwargs):
 
     if not train_config.enable_fsdp or rank == 0:
         print(f"--> Training Set Length = {len(dataset_train)}")
+    
+    if dataset_config.dataset == "hf_dataset.py":
+        version = dataset_train.version
+        kwargs["version"] = version
 
     dataset_val = get_preprocessed_dataset(
         tokenizer,

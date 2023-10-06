@@ -99,8 +99,12 @@ class HuggingFaceDataset(torch.utils.data.Dataset):
         start_time = time()
 
         hf_dataset = load_dataset(repo, revision=version)
-        print(hf_dataset.info.version)
-        raise Exception("Stop here")
+
+        checksum_urls = list(hf_dataset["train"].info.download_checksums.keys())
+        assert len(checksum_urls) > 0, "No checksums found in dataset info."
+        # i.e. hf://datasets/llama2d/llama2d-zoo-compass@4d506a02b478e1423302c6191ba579b2e5676d32/data/train-00000-of-00001-0ce12edf9739465e.parquet
+        self.commit_hash = checksum_urls[0].split("@")[1].split("/")[0]
+        print(f"HF Commit hash: {self.commit_hash}")
 
         print(f"Loaded dataset in {time()-start_time} seconds.")
         # dataset = [d for d in dataset if d is not None and sum([1 for i in d["labels"] if i>0])>0]

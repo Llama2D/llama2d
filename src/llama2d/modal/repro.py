@@ -34,7 +34,12 @@ def check_llama2d_code():
         "llama_recipes": llama_recipes,
     }
 
-def make_repro_command():
+from typing import Optional
+def make_repro_command(dataset:str,repo:Optional[str]=None,version:Optional[str] = None):
+    # huggingface check
+    if dataset == "hf_dataset.py":
+        assert version is not None,"Please specify a version for the HF dataset."
+
     commits = check_llama2d_code()
 
     # get full command line command

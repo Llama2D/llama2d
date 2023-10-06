@@ -97,7 +97,7 @@ def main(
     num_epochs: int = 1,
     batch_size: int = 16,
 
-    repo: str = "llama2d/llama2d-mind2web",
+    repo: str = None,
     version: str = None,
 
     keep_fraction: float = 1.0,
@@ -123,7 +123,7 @@ def main(
     print(f"Syncing base model {model_name} to volume.")
     download.remote(model_name)
 
-    cmd,commits = make_repro_command()
+    cmd,commits = make_repro_command(dataset,repo,version)
 
     assert group is not None and name is not None, "Please set wandb group and name."
 
@@ -166,7 +166,10 @@ def main(
             "dataset_folder": "mind2web-cache",
             "use_2d": use_2d,
             "keep_fraction": keep_fraction,
+
             "repo": repo,
+            "version": version,
+
             "lbd_start_value": lbd_start_value,
             "seed": seed,
             "use_point_embed": use_point_embed,
