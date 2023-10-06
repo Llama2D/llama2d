@@ -49,7 +49,7 @@ def get_dataset_info(repo:str):
     info = get_dataset_infos(repo)
 
     # get commit hash from download checksums
-    checksum_urls = list(info["train"].info.download_checksums.keys())
+    checksum_urls = list(info["default"].download_checksums.keys())
     assert len(checksum_urls) > 0, "No checksums found in dataset info."
     commit_hash = checksum_urls[0].split("@")[1].split("/")[0]
 
