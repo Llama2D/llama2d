@@ -44,14 +44,12 @@ from modal import Mount, Secret, gpu
     # timeout=3600 * 4,
     secrets=[Secret.from_name("huggingface")],
 )
-def get_dataset_info(repo:str):
-    from datasets import get_dataset_infos
-    info = get_dataset_infos(repo)
+def get_dataset_info(repo:str,version:str=None):
+    from huggingface_hub import hf_api
+    hf_info = hf_api.dataset_info(repo_id=repo,revision=version)
 
     # get commit hash from download checksums
-    checksum_urls = list(info["default"].download_checksums.keys())
-    assert len(checksum_urls) > 0, "No checksums found in dataset info."
-    commit_hash = checksum_urls[0].split("@")[1].split("/")[0]
+    commit_hash = hf_info.sha
 
     print(f"Dataset commit hash: {commit_hash}")
 
@@ -65,7 +63,7 @@ def make_repro_command(dataset:str,repo:Optional[str]=None,version:Optional[str]
     # huggingface check
     if dataset == "hf_dataset.py":
         assert repo is not None, "Please specify repo for HF dataset."
-        commit_hash =  get_dataset_info.local(repo)
+        commit_hash =  get_dataset_info.local(repo,version)
         assert version is None or version == commit_hash, "Version must match commit hash - no branch name shenanigans."
         if version is None:
             version = commit_hash

@@ -65,5 +65,5 @@ if __name__ == "__main__":
 
     debug_dataset(dataset)
 
-    info = DatasetInfo(repo="llama2d/llama2d-unscramble",desc="Unscramble the words displayed on the screen.")
+    info = DatasetInfo(repo="llama2d/llama2d-unscramble-small",desc="Unscramble the words displayed on the screen.")
     publish_pt_dataset(dataset,info)
