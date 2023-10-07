@@ -125,6 +125,8 @@ def debug_dataset(dataset: Dataset):
                 print(f"Skipping {action}...")
                 i += int(action)
                 continue
+        else:
+            print("No pt_input for this entry.")
         i += 1
 
     assert pt_input is not None, "Didn't find any valid dataset entries!"
@@ -136,6 +138,7 @@ if __name__ == "__main__":
     from llama2d.datasets.mind2web import Mind2webDataset
 
     with sync_playwright() as playwright:
+        from llama2d.datasets.huggingface import HuggingFaceDataset
         dataset = HuggingFaceDataset("llama2d/llama2d-mind2web", split="train")
         for entry in dataset:
             assert (

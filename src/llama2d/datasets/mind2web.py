@@ -22,10 +22,18 @@ should_debug = False
 
 class Mind2webDataset(Dataset):
     def __init__(
-        self, model="decapoda-research/llama-7b-hf", playwright=None, headless=False,show_errors=False
+        self, model="decapoda-research/llama-7b-hf",
+        playwright=None,
+        headless=False,
+        show_errors=False,
+        debug_errors=False,
+        max_seq_len=2000,
     ):
         assert playwright is not None, "Please pass in playwright"
-        self.__extractor = Llama2dWebsiteFeatureExtractor(mask_out_body=True)
+        self.__extractor = Llama2dWebsiteFeatureExtractor(
+            mask_out_body=True,
+            max_seq_len=max_seq_len,
+        )
 
         self.uid_to_mhtml = self.get_uid_to_mhtml_map()
 
@@ -55,6 +63,7 @@ class Mind2webDataset(Dataset):
         )
         self.page.set_default_navigation_timeout(1000 * 10)
         self.show_errors = show_errors
+        self.debug_errors = debug_errors
 
     def __len__(self):
         return len(self.actions)
@@ -102,11 +111,11 @@ class Mind2webDataset(Dataset):
 
             completion = None
             if op == "CLICK":
-                completion = f"CLICK [{gt_tag}]"
+                completion = f"[{gt_tag}] CLICK"
             elif op == "TYPE":
-                completion = f"TYPE [{gt_tag}] {json.dumps(value)}"
+                completion = f"[{gt_tag}] TYPE {json.dumps(value)}"
             elif op == "SELECT":
-                completion = f"SELECT [{gt_tag}]"
+                completion = f"[{gt_tag}] SELECT {json.dumps(value)}"
             else:
                 raise NotImplementedError(f"Don't understand operation {op}")
 
@@ -121,7 +130,10 @@ class Mind2webDataset(Dataset):
         except Exception as e:
             # raise e
             if self.show_errors:
-                print("Error in dataset:", str(e)[:100] + "...")
+                print("Error in dataset:", str(e)[:500] + "...")
+            
+            if self.debug_errors:
+                import pdb;pdb.set_trace()
 
             if "ImageAnnotation" in str(e):
                 raise e
@@ -152,9 +164,15 @@ if __name__ == "__main__":
     )
 
     with sync_playwright() as playwright:
-        dataset = Mind2webDataset(playwright=playwright, headless=True)
+        dataset = Mind2webDataset(
+            playwright=playwright,
+            headless=False,
+            show_errors=True,
+            # debug_errors=True
+        )
+        print("loaded datasets")
 
-        # debug_dataset(dataset)
+        debug_dataset(dataset)
 
         # publish a subset
         num_samples = 2_000

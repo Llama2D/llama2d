@@ -25,9 +25,10 @@ class Llama2dZooCompassDataset(Dataset):
         tokenizer: Llama2dTokenizer = None,
     ):
         self.num_screens = num_screens
+        self.max_seq_len = words_per_screen * 3
 
         if tokenizer is None:
-            tokenizer = Llama2dTokenizer()
+            tokenizer = Llama2dTokenizer(max_seq_len=self.max_seq_len)
         self.tokenizer = tokenizer
 
         self.screens = []

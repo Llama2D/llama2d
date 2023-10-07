@@ -16,17 +16,20 @@ def add_tags_to_webpage(page, mind2web_action) -> Tuple[int, List[TagAndBox]]:
     A visual tag looks like [12] and is superimposed on buttons, textboxes, links, etc.
     """
 
+    value = mind2web_action["operation"]["value"]
+
+    pos_candidates = mind2web_action["pos_candidates"]
     attrss = [
         json.loads(pos_candidate["attributes"])
-        for pos_candidate in mind2web_action["pos_candidates"]
+        for pos_candidate in pos_candidates
     ]
 
     els = []
-    for attrs in attrss:
+    for attrs,pos_candidate in zip(attrss, pos_candidates):
         cls = attrs.get("class", None)
         tag_id = attrs.get("id", None)
         bbox_rect = [float(i) for i in attrs["bounding_box_rect"].split(",")]
-        els.append({"cls": cls, "tag_id": tag_id, "bbox_rect": bbox_rect})
+        els.append({"cls": cls, "tag_id": tag_id, "bbox_rect": bbox_rect,"tag":pos_candidate["tag"]})
 
     raw_html = mind2web_action["raw_html"]
 
@@ -34,11 +37,12 @@ def add_tags_to_webpage(page, mind2web_action) -> Tuple[int, List[TagAndBox]]:
     # and id {tag_id} and bbox {bbox_rect}")
 
     curr_dir = os.path.dirname(os.path.realpath(__file__))
-    with open(f"{curr_dir}/tagUtils.js", "r") as f:
+    with open(f"{curr_dir}/tagUtils.new.js", "r") as f:
         page.evaluate(f.read())
 
     try:
-        to_eval = f"tagifyWebpage({json.dumps(els)},true,{json.dumps(raw_html)})"
+        to_eval = f"tagifyWebpage({json.dumps(els)},true,{json.dumps(raw_html)},{json.dumps(value)})"
+        to_eval = f"console.log({json.dumps(to_eval)}), {to_eval}"
         gt_tag_id, el_tags = page.evaluate(to_eval)
     except Exception as e:
         raise e

@@ -13,13 +13,17 @@ class UnscrambleDataset(Dataset):
             words_per_screen:int,
             words_per_line:int=20,
             lines_per_screen:int=5,
-            tokenizer:Llama2dTokenizer=None
+            tokenizer:Llama2dTokenizer=None,
+            max_seq_len:int=250,
         ):
         self.num_screens = num_screens
         self.words_per_screen = words_per_screen
+        self.max_seq_len = max_seq_len
 
         if tokenizer is None:
-            tokenizer = Llama2dTokenizer()
+            tokenizer = Llama2dTokenizer(
+                max_seq_len=max_seq_len,
+            )
         self.tokenizer = tokenizer
 
         self.screens = []
@@ -60,7 +64,8 @@ if __name__ == "__main__":
         num_screens=5000,
         words_per_screen=50,
         words_per_line=15,
-        lines_per_screen=5
+        lines_per_screen=5,
+        max_seq_len=250
     )
 
     debug_dataset(dataset)

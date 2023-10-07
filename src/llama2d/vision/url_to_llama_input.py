@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 
 import torch
 
-from llama2d.constants import MAX_PAGE_LEN, MAX_SEQ_LEN, MAX_TAGS_LEN
+from llama2d.constants import MAX_TAGS_LEN
 from llama2d.tagging.add_tags_to_page import TagAndBox
 from llama2d.vision.ocr import ImageAnnotator, Llama2dScreen
 from llama2d.vision.take_screenshot import extract_domain, take_screenshot
@@ -19,6 +19,7 @@ from transformers import LlamaTokenizer
 class Llama2dTokenizer(object):
     def __init__(
         self,
+        max_seq_len:int=None,
         model_path: str = "decapoda-research/llama-7b-hf",
         separator_id=None,
         label_mask_id=-100,
@@ -35,6 +36,7 @@ class Llama2dTokenizer(object):
 
         self.__label_mask_id = label_mask_id
         self.__mask_out_body = mask_out_body
+        self.max_seq_len = max_seq_len
 
     def process(
         self, prompt: str, screen: Llama2dScreen, output: str
@@ -52,6 +54,8 @@ class Llama2dTokenizer(object):
             [annot.midpoint_normalized for j in range(len(i))]
             for i, annot in zip(image_tokens, screen.words)
         ]
+
+        # filter image token locs 
 
         # extract tokens from the prompt
         prompt_tokens = self.tokenizer.tokenize(prompt)
@@ -113,42 +117,43 @@ class Llama2dTokenizer(object):
         )
 
         # pad or truncate
-        if len(input_ids) > MAX_SEQ_LEN:
-            input_ids = input_ids[:MAX_SEQ_LEN]
-            label_ids = label_ids[:MAX_SEQ_LEN]
-            input_coords = input_coords[:MAX_SEQ_LEN]
-            attention_mask = attention_mask[:MAX_SEQ_LEN]
-        elif len(input_ids) < MAX_SEQ_LEN:
-            # right-pad label_ids with -100,
-            # input_coords with (-1,-1), and input_ids with 0
-            input_ids = torch.cat(
-                [input_ids, torch.zeros(MAX_SEQ_LEN - len(input_ids), dtype=torch.long)]
-            )
-            label_ids = torch.cat(
-                [
-                    label_ids,
-                    torch.ones(MAX_SEQ_LEN - len(label_ids), dtype=torch.long)
-                    * self.__label_mask_id,
-                ]
-            )
-            input_coords = torch.cat(
-                [input_coords, torch.ones(MAX_SEQ_LEN - len(input_coords), 2) * -1]
-            ).to(torch.float16)
-            attention_mask = torch.cat(
-                [
-                    attention_mask,
-                    torch.zeros(MAX_SEQ_LEN - len(attention_mask), dtype=torch.long),
-                ]
-            )
+        if self.max_seq_len is not None:
+            if len(input_ids) > self.max_seq_len:
+                input_ids = input_ids[:self.max_seq_len]
+                label_ids = label_ids[:self.max_seq_len]
+                input_coords = input_coords[:self.max_seq_len]
+                attention_mask = attention_mask[:self.max_seq_len]
+            elif len(input_ids) < self.max_seq_len:
+                # right-pad label_ids with -100,
+                # input_coords with (-1,-1), and input_ids with 0
+                input_ids = torch.cat(
+                    [input_ids, torch.zeros(self.max_seq_len - len(input_ids), dtype=torch.long)]
+                )
+                label_ids = torch.cat(
+                    [
+                        label_ids,
+                        torch.ones(self.max_seq_len - len(label_ids), dtype=torch.long)
+                        * self.__label_mask_id,
+                    ]
+                )
+                input_coords = torch.cat(
+                    [input_coords, torch.ones(self.max_seq_len - len(input_coords), 2) * -1]
+                ).to(torch.float16)
+                attention_mask = torch.cat(
+                    [
+                        attention_mask,
+                        torch.zeros(self.max_seq_len - len(attention_mask), dtype=torch.long),
+                    ]
+                )
 
         # assert all tensors are the desired length
-        assert len(input_ids) == MAX_SEQ_LEN, f"len(input_ids) = {len(input_ids)}"
-        assert len(label_ids) == MAX_SEQ_LEN, f"len(label_ids) = {len(label_ids)}"
+        assert len(input_ids) == self.max_seq_len, f"len(input_ids) = {len(input_ids)}"
+        assert len(label_ids) == self.max_seq_len, f"len(label_ids) = {len(label_ids)}"
         assert (
-            len(input_coords) == MAX_SEQ_LEN
+            len(input_coords) == self.max_seq_len
         ), f"len(input_coords) = {len(input_coords)}"
         assert (
-            len(attention_mask) == MAX_SEQ_LEN
+            len(attention_mask) == self.max_seq_len
         ), f"len(attention_mask) = {len(attention_mask)}"
 
         # return output
@@ -173,7 +178,7 @@ class Llama2dWebsiteFeatureExtractor(object):
     ):
         # run OCR
         annotations = self.__annotator(page)
-        annotations = annotations[:MAX_PAGE_LEN]
+        annotations = annotations
 
         if tags_and_boxes is not None:
             for tag in tags_and_boxes[:MAX_TAGS_LEN]:
