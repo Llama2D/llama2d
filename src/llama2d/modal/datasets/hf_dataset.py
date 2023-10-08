@@ -6,5 +6,10 @@ def get_custom_dataset(dataset_config, tokenizer, split):
     use_2d = dataset_config.use_2d
     print("get_custom_dataset, use_2d:", use_2d)
     return HuggingFaceDataset(
-        repo, split, keep_fraction=dataset_config.keep_fraction, use_2d=use_2d, version=dataset_config.version
+        repo,
+        split,
+        dataset_config.seed,
+        keep_fraction=dataset_config.keep_fraction,
+        use_2d=use_2d,
+        version=dataset_config.version,
     )

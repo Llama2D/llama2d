@@ -93,7 +93,13 @@ dtypes = {
 
 class HuggingFaceDataset(torch.utils.data.Dataset):
     def __init__(
-        self, repo: str, split: str, keep_fraction: float = 1.0, use_2d: bool = True, version: str = None
+        self,
+        repo: str,
+        split: str,
+        seed:int=0,
+        keep_fraction: float = 1.0,
+        use_2d: bool = True,
+        version: str = None,
     ):
         print("Loading dataset...")
         start_time = time()
@@ -120,7 +126,8 @@ class HuggingFaceDataset(torch.utils.data.Dataset):
         train_size = int(len(dataset) * train_percent / 100)
         val_size = len(dataset) - train_size
         train_dataset, val_dataset = torch.utils.data.random_split(
-            dataset, [train_size, val_size]
+            dataset, [train_size, val_size],
+            generator=torch.Generator().manual_seed(seed)
         )
 
         self.dataset = train_dataset if split == "train" else val_dataset
