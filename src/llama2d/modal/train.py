@@ -149,6 +149,7 @@ def main(
         {
             "model_name": BASE_MODELS[base],
             "output_dir": f"/results/{run_id}",
+            "dist_checkpoint_root_folder": f"/results/{run_id}",
             "batch_size_training": batch_size,
             "lr": lr,
             "lambda_lr": lambda_lr,
