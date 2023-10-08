@@ -166,7 +166,7 @@ if __name__ == "__main__":
     with sync_playwright() as playwright:
         dataset = Mind2webDataset(
             playwright=playwright,
-            headless=False,
+            headless=True,
             show_errors=True,
             # debug_errors=True
         )
@@ -175,7 +175,7 @@ if __name__ == "__main__":
         debug_dataset(dataset)
 
         # publish a subset
-        num_samples = 2_000
+        num_samples = 5_000
 
         if num_samples is not None:
             dataset, _ = torch.utils.data.random_split(
