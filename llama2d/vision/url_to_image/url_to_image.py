@@ -32,6 +32,7 @@ async def take_screenshot(page, url, save_path="image_of_website.png"):
     thresholded_height = min(content_height, height)
     default_viewport_size = page.viewport_size
 
+    # TODO: scroll & stitch here, don't do viewport resizing
     await page.set_viewport_size({"width": width, "height": thresholded_height})
     await page.screenshot(path=save_path)
 
