@@ -1,4 +1,22 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/llama2d/llama2d/main/llama2d.png" height="300" alt="2D Llama line-art" />
+</p>
+<p align="center">
+  <em>2D Positional Embeddings for Webpage Structural Understanding</em> 🦙👀
+</p>
+
 # llama2d
+How can we get LLM-based agents to understand the *visual structure* of a webpage? We fine-tune Llama on OCR'd screenshots of webpages but with 2D positional embeddings, enabling it to "see" the structure of a webpage rather than just a sequence of tokens.
+
+To construct the dataset, we:
+- took each MHTML provided by Mind2Web
+- rendered it in Playwright
+- tagged interactable elements
+- ran OCR to get (x, y) coordinates of words on the page
+
+We then calculate 2D positional embeddings for each word and fine-tune Llama!
+
+Note: this repo is still a bit disorganized and a work in progress, but we encourage community contributions & forks to explore this direction in LLM web interaction!
 
 ## Setup
 
@@ -12,9 +30,7 @@ pre-commit install
 
 ## Secrets
 
-Secrets are posted in [this Slack thread](https://agihouse.slack.com/archives/C05SR8PR4KE/p1695104312522089).
-
-1. Download the `gcp-vision.json` credential file from our Slack channel and put it in `secrets/`.
+1. Create a Google Cloud Vision credential file and put it at `secrets/gcp-vision.json`.
 
 2. Run the Modal login command in the Slack channel. It looks like this: `modal token set --token-id <secret> --token-secret <secret>`
 
@@ -22,7 +38,7 @@ Secrets are posted in [this Slack thread](https://agihouse.slack.com/archives/C0
 
 Datasets are defined in the `src/llama2d/datasets/` directory.
 
-Every row of a dataset is defined by a prompt, a 2d "screen", and an output.
+Every row of a dataset is defined by a prompt, a 2D "screen", and an output.
 
 However, a row is converted into pure tokens before being fed into Llama - see [this dataset]() for an example.
 
