@@ -16,7 +16,7 @@ To construct the dataset, we:
 
 We then calculate 2D positional embeddings for each word and fine-tune Llama!
 
-Note: this repo is still a bit disorganized and a work in progress, but we encourage community contributions & forks to explore this direction in LLM web interaction!
+Note: this repo is still a bit disorganized and a work in progress, but we encourage community contributions & forks to explore this direction in LLM web interaction
 
 ## Setup
 
@@ -135,7 +135,7 @@ Pre-commit hooks are used to maintain code quality.
 bibtex
 @misc{llama2d2024,
   title        = {Llama2D},
-  author       = {Houjun Liu and Andrew Healey and Andrew Stelmach and Christopher Settles and Rohan Pandey},
+  author       = {Houjun Liu and Andrew Healey and Andrew Stelmach and Christopher Settles and Sarma Tangirala and Rohan Pandey},
   year         = {2024},
   howpublished = {GitHub},
   url          = {https://github.com/llama2d/llama2d}
