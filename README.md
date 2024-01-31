@@ -134,7 +134,7 @@ Pre-commit hooks are used to maintain code quality.
 ```
 bibtex
 @misc{llama2d2024,
-  title        = {Llama2D},
+  title        = {Llama2D: Two Dimensional Positional Embeddings for Webpage Structural Understanding},
   author       = {Houjun Liu and Andrew Healey and Andrew Stelmach and Christopher Settles and Sarma Tangirala and Rohan Pandey},
   year         = {2024},
   howpublished = {GitHub},
