@@ -128,3 +128,16 @@ To add a requirement, add it to `requirements.in`, run `pip-compile`, and run `p
 Run `black . --exclude '/transformers/|/venv/'` to format the code.
 
 Pre-commit hooks are used to maintain code quality.
+
+## Citations
+
+```
+bibtex
+@misc{llama2d2024,
+  title        = {Llama2D},
+  author       = {Houjun Liu and Andrew Healey and Andrew Stelmach and Christopher Settles and Rohan Pandey},
+  year         = {2024},
+  howpublished = {GitHub},
+  url          = {https://github.com/llama2d/llama2d}
+}
+```
