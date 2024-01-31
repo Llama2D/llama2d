@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Liu"
+  given-names: "Houjun"
+- family-names: "Healey"
+  given-names: "Andrew"
+- family-names: "Stelmach"
+  given-names: "Andrew"
+- family-names: "Settles"
+  given-names: "Christopher"
+- family-names: "Tangirala"
+  given-names: "Sarma"
+- family-names: "Pandey"
+  given-names: "Rohan"
+title: "Llama2D: Two Dimensional Positional Embeddings for Webpage Structural Understanding"
+date-released: 2024-1-30
+license: "MIT"
+url: "https://github.com/reworkd/tarsier"
