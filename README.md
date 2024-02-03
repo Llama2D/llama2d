@@ -4,6 +4,9 @@
 <p align="center">
   <em>2D Positional Embeddings for Webpage Structural Understanding</em> 🦙👀
 </p>
+<p align="center">
+  <a href="https://twitter.com/khoomeik/status/1753511199877333254">🐦 Twitter</a>
+</p>
 
 # llama2d
 How can we get LLM-based agents to understand the *visual structure* of a webpage? We fine-tune Llama on OCR'd screenshots of webpages but with 2D positional embeddings, enabling it to "see" the structure of a webpage rather than just a sequence of tokens.
