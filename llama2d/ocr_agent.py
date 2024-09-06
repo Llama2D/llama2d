@@ -11,6 +11,15 @@ from reworkd_platform.settings import settings
 from llama2d.vision.url_to_image import take_screenshot
 from llama2d.tagging.tagify import tagify_webpage
 from llama2d.vision.ocr import ImageAnnotator
+from pydantic import BaseModel, Field
+from typing import List, Optional
+
+
+class State(BaseModel):
+    last_actions: List[str] = Field(default=[])
+    notes: str = Field(
+        default="- Important Elements:\n(empty)\n- Instructions for Engineer:\n(empty)\n"
+    )
 
 
 # CBD URLS with Popup:
@@ -23,8 +32,8 @@ from llama2d.vision.ocr import ImageAnnotator
 # https://cloud69smoke.com/
 
 
-url = "http://ec2-3-131-244-37.us-east-2.compute.amazonaws.com:7770/"
-goal = "add bushs black beans to the cart"
+url = "https://www.infineon.com/cms/en/product/power/mosfet/silicon-carbide/modules/ff3mr20km1h/"
+goal = "collect links to all listing pages for individual products on the website"
 # goal = 'close a pop-up by any means necessary if present; navigate to the Contact Us page; if already on the Contact Us page, fill out and submit the "Contact Us" form with generic John Doe info'
 # goal = "find the username of the user who posted the all-time top post in the Shower Thoughts forum"
 screenshot_path = "./screenshot.png"
@@ -226,29 +235,32 @@ def ocr_page_text():
             # Update the last inserted position
             last_x = x + len(annotation.text) + 1  # +1 for a space between words
 
+    # Delete all whitespace characters after the last non-whitespace character in each row
+    canvas = [list(''.join(row).rstrip()) for row in canvas]
+
     # Convert the canvas to a plaintext string
     page_text = "\n".join("".join(row) for row in canvas)
     page_text = page_text.strip()
     page_text = "-" * canvas_width + "\n" + page_text + "\n" + "-" * canvas_width
-    # print(output)
+    page_text = page_text.replace('        ', '\t')
 
     return page_text
 
 
-async def agent(page, goal=goal, context=None):
+async def agent(page, previous_state: Optional[State] = None, goal=goal) -> State:
     await asyncio.sleep(2)
     gt_tag_id, id_to_tag = await tagify_webpage(
         page, {"pos_candidates": [{"attributes": "{}"}]}
     )
     await take_screenshot(page, None, screenshot_path)
     page_text = ocr_page_text()
-
     prompt = f"""Below is an OCR'd web page (using whitespace to approximate its visual structure). I've inserted an ID in brackets (e.g. [24]) before or above the text of elements that are interactable (e.g. buttons, links). For elements you can type text into (e.g. text input or text areas), I've inserted the ID in curly braces.
 {page_text}
-Your goal is: {goal}
-{f"Here is also some information that may be useful: {context}" if context and len(context) else ""}
-You may perform the following actions: CLICK [id] (click element), TYPE [id] [text] (type text in element), RETURN [text] (return text to the user e.g. if complete or no good action), SOLVE_CAPTCHA.
-First, analyze the current state of the page in detail and reason about its contents. Keep in mind that you may have previously taken some action on this page. Then, decide what action(s) to perform next to make progress toward the goal. State "Actions:" and list the action(s) sequentially (though only 1 may be needed) as a pipe (|) separated list (e.g. "Actions: CLICK [12] | TYPE [29] [hello world]")."""
+Explore the website as necessary in order to write detailed notes for a developer coding a web scraper for the following task:  {goal}
+You may perform the following actions: CLICK [id] (click element), TYPE [id] [text] (type text in element).
+Your current notes:\n{previous_state.notes}\n
+Here are your previous actions:\n{previous_state.last_actions}\n
+First, analyze the current state of the page in detail and reason about its contents. Keep in mind that you may have previously taken some action on this page. Then, decide what action(s) to perform next to make progress toward the goal. Finally, update the notes to include information about the important elements and instructions for the scraper. In your response, state "Actions:" and list the action(s) sequentially (though only 1 may be needed) as a single-line pipe (|) separated list (e.g. "Actions: CLICK [12] | TYPE [29] [hello world]"). At the end of your response, state "Updated Notes:" followed by any important multiline notes (include previous notes you'd like to maintain)."""
     # For each action (though only 1 may be needed), state "Action: " on a NEW line followed by your action decision with brackets for its arguments (e.g. "TYPE [35] [hello world]").
     # TODO: maybe use function calling or return as JSON?
     print(prompt)
@@ -257,19 +269,28 @@ First, analyze the current state of the page in detail and reason about its cont
     )
     print(output)
 
-    actions = output.split("Actions: ")[1]
+    actions_notes = output.split("Actions: ")[1]
+    actions = actions_notes.split("Updated Notes:")[0].strip()
+    notes = actions_notes.split("Updated Notes:")[1].strip()
+
+    next_state = State(last_actions=previous_state.last_actions, notes=notes)
+
     if "|" in actions:
         actions = actions.split("|")
     else:
         actions = [actions]
     for action in actions:
+        next_state.last_actions.append(action)
         action = action.strip()
         try:
             await execute_action(page, action, id_to_tag)
         except Exception as e:
-            print("Unable to execute action:", action, '\nError:', e)
+            print("Unable to execute action:", action, "\nError:", e)
+    
+    if completed:
+        return edit_notes(next_state.notes, id_to_tag)
 
-    return
+    return next_state
 
 
 async def setup_and_run():
@@ -283,9 +304,21 @@ async def setup_and_run():
         )
         await page.goto(url)
 
+        previous_state = State()
         for _ in range(5):
-            await agent(page)
+            previous_state = await agent(page, previous_state)
 
+
+def edit_notes(notes, id_to_xpath):
+    for id in re.findall(r"\[\d+\]", notes):
+        xpath = id_to_xpath.get(id.strip("[]"), id)
+        notes = notes.replace(id, xpath)
+    return notes
+
+def find_general_selector(page, ids, id_to_xpath):
+    # create a playwright selector that matches all the ids in an intuitive general way leveraging LLM
+    pass
+    
 
 if __name__ == "__main__":
     asyncio.run(setup_and_run())

@@ -19,7 +19,7 @@ async def tagify_webpage(page, gt_action):
     curr_dir = os.path.dirname(os.path.realpath(__file__))
     with open(f"{curr_dir}/mlsUtils.js", "r") as f:
         await page.evaluate(f.read())
-    
+
     # a_handle = await page.evaluate_handle("document.body")
     # a_value = await a_handle.json_value() # NOTE: JSHandle won't work because we need to do clicks etc using Playwright object
 
@@ -28,6 +28,15 @@ async def tagify_webpage(page, gt_action):
     )
 
     return gt_tag_id, id_to_tag
+
+
+async def get_xpath(page, element):
+    curr_dir = os.path.dirname(os.path.realpath(__file__))
+    with open(f"{curr_dir}/mlsUtils.js", "r") as f:
+        await page.evaluate(f.read())
+    
+    xpath = await element.evaluate("getElementXPath")
+    return xpath
 
 
 if __name__ == "__main__":
